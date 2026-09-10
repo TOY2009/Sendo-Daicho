@@ -154,7 +154,7 @@
       pageTitleSuffix: { ja: " の日報", en: " Report" },
       loadFailed: { ja: "候補商品の取得に失敗しました", en: "Failed to load candidate products" },
       loadingCandidates: { ja: "候補商品を読み込み中…", en: "Loading candidate products…" },
-      notFound: { ja: "対応する評価ログの行が見つかりませんでした", en: "No matching row was found in the analysis log" },
+      notFound: { ja: "対応するHearing Sheetが見つかりませんでした", en: "No matching Hearing Sheet was found" },
       notFoundHint: { ja: "HSダウンロード直後は反映まで数秒〜数十秒かかることがあります", en: "It can take up to several tens of seconds to show up right after HS download" },
       noCandidates: { ja: "候補商品がありません", en: "No candidate products" },
       noCandidatesHint: {

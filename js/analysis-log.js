@@ -268,12 +268,13 @@
 
   // ---- 位置情報のリアルタイム記録(6章) ----
 
-  var LOCATION_SHEET_TITLE = "Location";
+  var LOCATION_SHEET_TITLE = "Location"; // 新規作成時のタブ名(既存タブの検索はタブ名に頼らない、下記参照)
   var LOCATION_VALUES_RANGE = "A2:F5000";
+  var LOCATION_HEADER_SIGNAL_LABELS = ["緯度", "latitude"]; // 他のタブと被らない一意な見出しで判定する
   var cachedLocationSheet = null; // { fileId, sheetId, title }
 
-  // 「Location」タブが既にあれば返す。無ければ何もせずnullを返す(削除処理などで
-  // 存在確認だけしたい場合に、タブを作ってしまわないようgetOrCreateLocationSheetとは分けている)
+  // Locationタブは実際にタブ名を変更されたことがある(Location→Visit_Logなど)ため、
+  // タブ名ではなく「緯度」相当の見出しを持つタブかどうかで探す(見つからなければnull)。
   function findLocationSheet() {
     if (cachedLocationSheet) return Promise.resolve(cachedLocationSheet);
 
@@ -282,13 +283,27 @@
         "?fields=" + encodeURIComponent("sheets.properties");
       return GoogleApi.fetchJson(url).then(function (data) {
         var sheets = data.sheets || [];
-        var found = null;
-        for (var i = 0; i < sheets.length; i++) {
-          if (sheets[i].properties.title === LOCATION_SHEET_TITLE) { found = sheets[i]; break; }
+
+        function checkNext(i) {
+          if (i >= sheets.length) return null;
+          var props = sheets[i].properties;
+          return ProductSource.getSheetValues(file.fileId, props.title, "A1:F1").then(function (rows) {
+            var header = rows[0] || [];
+            var isLocationTab = header.some(function (cell) {
+              var normalized = normalizeForMatch(cell);
+              return LOCATION_HEADER_SIGNAL_LABELS.some(function (label) {
+                return normalized.indexOf(normalizeForMatch(label)) !== -1;
+              });
+            });
+            if (isLocationTab) return { fileId: file.fileId, sheetId: props.sheetId, title: props.title };
+            return checkNext(i + 1);
+          });
         }
-        if (!found) return null;
-        cachedLocationSheet = { fileId: file.fileId, sheetId: found.properties.sheetId, title: found.properties.title };
-        return cachedLocationSheet;
+
+        return checkNext(0).then(function (found) {
+          if (found) cachedLocationSheet = found;
+          return found;
+        });
       });
     });
   }
