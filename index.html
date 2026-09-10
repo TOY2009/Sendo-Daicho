@@ -17,11 +17,15 @@
 <body>
 <div class="app-shell">
   <header class="app-header">
+    <div class="header-nav-row">
+      <span></span>
+      <div id="lang-switcher-slot"></div>
+    </div>
     <div class="brand">
       <img class="mark" src="icons/icon-192.png" alt="THAI OOI YAMAMOTO">
       <div>
         <h1 class="app-title">鮮度台帳</h1>
-        <p class="app-subtitle mono">TOY Sales Department</p>
+        <p class="app-subtitle mono" data-i18n="index.subtitle">TOY Sales Department</p>
       </div>
     </div>
   </header>
@@ -30,8 +34,8 @@
     <a class="menu-card" href="ledger.html">
       <span class="menu-icon" aria-hidden="true">📒</span>
       <span class="menu-body">
-        <span class="menu-label">鮮度台帳</span>
-        <span class="menu-desc">課ごとの商談・フォロー状況を確認</span>
+        <span class="menu-label" data-i18n="index.ledgerLabel">鮮度台帳</span>
+        <span class="menu-desc" data-i18n="index.ledgerDesc">課ごとの商談・フォロー状況を確認</span>
       </span>
       <span class="menu-chevron" aria-hidden="true">›</span>
     </a>
@@ -39,8 +43,8 @@
     <a class="menu-card" href="schedule.html">
       <span class="menu-icon" aria-hidden="true">📝</span>
       <span class="menu-body">
-        <span class="menu-label">営業報告を入力</span>
-        <span class="menu-desc">本日の訪問先に到着・日報を記録</span>
+        <span class="menu-label" data-i18n="index.reportLabel">営業報告を入力</span>
+        <span class="menu-desc" data-i18n="index.reportDesc">本日の訪問先に到着・日報を記録</span>
       </span>
       <span class="menu-chevron" aria-hidden="true">›</span>
     </a>
@@ -48,8 +52,8 @@
     <a class="menu-card" href="karte.html">
       <span class="menu-icon" aria-hidden="true">🗂️</span>
       <span class="menu-body">
-        <span class="menu-label">カルテを確認</span>
-        <span class="menu-desc">個人ごとの取引・フォロー履歴を確認</span>
+        <span class="menu-label" data-i18n="index.karteLabel">カルテを確認</span>
+        <span class="menu-desc" data-i18n="index.karteDesc">個人ごとの取引・フォロー履歴を確認</span>
       </span>
       <span class="menu-chevron" aria-hidden="true">›</span>
     </a>
@@ -60,6 +64,7 @@
   </footer>
 </div>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="js/i18n.js"></script>
 <script src="js/auth-config.js"></script>
 <script src="js/rep-config.js"></script>
 <script src="js/auth.js"></script>

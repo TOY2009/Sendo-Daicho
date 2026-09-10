@@ -17,11 +17,12 @@
 <div class="app-shell">
   <header class="app-header">
     <div class="header-nav-row">
-      <a class="back-button" href="index.html">‹ 戻る</a>
+      <a class="back-button" href="index.html" data-i18n="common.back">‹ 戻る</a>
+      <div id="lang-switcher-slot"></div>
     </div>
     <div class="brand">
       <div>
-        <h1 class="app-title">本日の予定</h1>
+        <h1 class="app-title" data-i18n="schedule.pageTitle">本日の予定</h1>
         <p class="header-date" data-today></p>
       </div>
     </div>
@@ -30,7 +31,7 @@
 
   <main class="content">
     <section class="section-block">
-      <div class="section-title"><span>アポイントメント</span></div>
+      <div class="section-title"><span data-i18n="schedule.headerAppointments">アポイントメント</span></div>
       <div class="card visit-list" id="appointment-list"></div>
     </section>
 
@@ -39,18 +40,18 @@
     <section class="section-block">
       <div class="section-title"><span>Walk In</span></div>
       <div class="card visit-list" id="walkin-list"></div>
-      <button class="add-walkin-button" id="add-walkin-btn" type="button">
+      <button class="add-walkin-button" id="add-walkin-btn" type="button" data-i18n="schedule.addWalkinBtn">
         <span aria-hidden="true">＋</span> Walk In を追加
       </button>
     </section>
 
     <section class="section-block">
-      <div class="section-title"><span>今後の予定(1週間)</span></div>
+      <div class="section-title"><span data-i18n="schedule.headerFuture">今後の予定(1週間)</span></div>
       <div class="card" id="future-list"></div>
     </section>
 
     <section class="section-block">
-      <div class="section-title"><span>過去の日報</span></div>
+      <div class="section-title"><span data-i18n="schedule.headerHistory">過去の日報</span></div>
       <div class="card" id="history-list"></div>
     </section>
   </main>
@@ -58,26 +59,26 @@
 
 <div class="modal-overlay" id="walkin-modal" hidden>
   <div class="modal-sheet">
-    <div class="modal-title">Walk In 訪問を追加</div>
-    <p class="modal-text">アポ紐付けなしの訪問です。追加後、タスク①の「到着確認」ボタンを押すと位置情報・時刻が記録されます。</p>
+    <div class="modal-title" data-i18n="schedule.walkinModalTitle">Walk In 訪問を追加</div>
+    <p class="modal-text" data-i18n="schedule.walkinModalText">アポ紐付けなしの訪問です。追加後、タスク①の「到着確認」ボタンを押すと位置情報・時刻が記録されます。</p>
     <div class="modal-field">
-      <label for="walkin-name-input">店舗名(任意・自由入力)</label>
-      <input type="text" id="walkin-name-input" placeholder="例: 未登録の店舗" autocomplete="off">
+      <label for="walkin-name-input" data-i18n="schedule.walkinNameLabel">店舗名(任意・自由入力)</label>
+      <input type="text" id="walkin-name-input" placeholder="例: 未登録の店舗" data-i18n-placeholder="schedule.walkinNamePlaceholder" autocomplete="off">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" id="walkin-cancel-btn" type="button">キャンセル</button>
-      <button class="btn btn-primary" id="walkin-confirm-btn" type="button">追加する</button>
+      <button class="btn btn-secondary" id="walkin-cancel-btn" type="button" data-i18n="common.cancel">キャンセル</button>
+      <button class="btn btn-primary" id="walkin-confirm-btn" type="button" data-i18n="common.add">追加する</button>
     </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="delete-modal" hidden>
   <div class="modal-sheet">
-    <div class="modal-title">この予定を削除しますか？</div>
+    <div class="modal-title" data-i18n="schedule.deleteModalTitle">この予定を削除しますか？</div>
     <p class="modal-text" id="delete-modal-text"></p>
     <div class="modal-actions">
-      <button class="btn btn-secondary" id="delete-cancel-btn" type="button">キャンセル</button>
-      <button class="btn btn-danger" id="delete-confirm-btn" type="button">削除する</button>
+      <button class="btn btn-secondary" id="delete-cancel-btn" type="button" data-i18n="common.cancel">キャンセル</button>
+      <button class="btn btn-danger" id="delete-confirm-btn" type="button" data-i18n="common.delete">削除する</button>
     </div>
   </div>
 </div>
@@ -88,7 +89,7 @@
     <p class="modal-text" id="history-detail-subtitle"></p>
     <div class="history-detail-products" id="history-detail-products"></div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" id="history-detail-close-btn" type="button">閉じる</button>
+      <button class="btn btn-secondary" id="history-detail-close-btn" type="button" data-i18n="common.close">閉じる</button>
     </div>
   </div>
 </div>
@@ -96,6 +97,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="js/i18n.js"></script>
 <script src="js/auth-config.js"></script>
 <script src="js/rep-config.js"></script>
 <script src="js/auth.js"></script>

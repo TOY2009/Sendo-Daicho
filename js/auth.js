@@ -17,6 +17,12 @@
     return div.innerHTML;
   }
 
+  // i18n.jsを読み込んでいないページ(ledger.html/karte.htmlなど)でも壊れないよう、
+  // 未読み込み時は日本語のフォールバックを使う
+  function tr(key, fallback, vars) {
+    return window.I18n ? I18n.t(key, vars) : fallback;
+  }
+
   // ---- session persistence ----
 
   function loadStoredSession() {
@@ -98,7 +104,7 @@
   function handleTokenError(err) {
     console.warn("Google login failed", err);
     status = config.clientId ? "error" : "unconfigured";
-    errorMessage = "ログインに失敗しました(同意が拒否されたか、ポップアップがブロックされました)";
+    errorMessage = tr("auth.deniedError", "ログインに失敗しました(同意が拒否されたか、ポップアップがブロックされました)");
     notify();
   }
 
@@ -127,14 +133,14 @@
     }
     if (!isGisReady()) {
       status = "error";
-      errorMessage = "読み込みに失敗しました(オフラインの可能性があります)。再読み込みしてください。";
+      errorMessage = tr("auth.offlineError", "読み込みに失敗しました(オフラインの可能性があります)。再読み込みしてください。");
       render();
       return;
     }
     var client = ensureTokenClient();
     if (!client) {
       status = "error";
-      errorMessage = "初期化に失敗しました。再読み込みしてください。";
+      errorMessage = tr("auth.unconfiguredError", "初期化に失敗しました。再読み込みしてください。");
       render();
       return;
     }
@@ -171,15 +177,15 @@
 
   function widgetInner() {
     if (status === "unconfigured") {
-      return '<span class="auth-status-text">Google認証: 未設定です</span>';
+      return '<span class="auth-status-text">' + escapeHtml(tr("auth.unconfigured", "Google認証: 未設定です")) + '</span>';
     }
     if (status === "signing-in") {
-      return '<span class="auth-status-text">サインイン中…</span>' +
-        '<button class="auth-login-btn" type="button" disabled>Googleでログイン</button>';
+      return '<span class="auth-status-text">' + escapeHtml(tr("auth.signingIn", "サインイン中…")) + '</span>' +
+        '<button class="auth-login-btn" type="button" disabled>' + escapeHtml(tr("auth.loginBtn", "Googleでログイン")) + '</button>';
     }
     if (status === "error") {
       return '<span class="auth-status-text auth-status-error">' + escapeHtml(errorMessage) + '</span>' +
-        '<button class="auth-login-btn" type="button" id="auth-login-btn">再試行</button>';
+        '<button class="auth-login-btn" type="button" id="auth-login-btn">' + escapeHtml(tr("common.retry", "再試行")) + '</button>';
     }
     if (status === "logged-in" && session) {
       var profile = session.profile || {};
@@ -187,16 +193,17 @@
         ? '<img class="auth-avatar" id="auth-avatar-img" src="' + escapeHtml(profile.picture) + '" alt="">'
         : '<span class="auth-avatar auth-avatar-fallback">' + escapeHtml((profile.name || "?").charAt(0)) + '</span>';
       var repName = (window.SENDO_REP_CONFIG && window.SENDO_REP_CONFIG.getRepName) ? window.SENDO_REP_CONFIG.getRepName() : "";
+      var repNameLabel = tr("auth.repNamePrefix", "担当者名: ") + (repName || tr("auth.repNameUnset", "未設定"));
       return avatar +
         '<span class="auth-name-wrap">' +
           '<span class="auth-name">' + escapeHtml(profile.name) + '</span>' +
-          '<button class="auth-repname-btn" type="button" id="auth-repname-btn">担当者名: ' + escapeHtml(repName || "未設定") + ' ✎</button>' +
+          '<button class="auth-repname-btn" type="button" id="auth-repname-btn">' + escapeHtml(repNameLabel) + ' ✎</button>' +
         '</span>' +
-        '<button class="auth-logout-btn" type="button" id="auth-logout-btn">ログアウト</button>';
+        '<button class="auth-logout-btn" type="button" id="auth-logout-btn">' + escapeHtml(tr("auth.logoutBtn", "ログアウト")) + '</button>';
     }
     // logged-out
-    return '<span class="auth-status-text">Googleアカウントでログインしてください</span>' +
-      '<button class="auth-login-btn" type="button" id="auth-login-btn">Googleでログイン</button>';
+    return '<span class="auth-status-text">' + escapeHtml(tr("auth.loginPrompt", "Googleアカウントでログインしてください")) + '</span>' +
+      '<button class="auth-login-btn" type="button" id="auth-login-btn">' + escapeHtml(tr("auth.loginBtn", "Googleでログイン")) + '</button>';
   }
 
   // Hearing Sheetのフォルダ名・{担当者名}_App_Analysisのファイル名とGoogleアカウントの
@@ -204,10 +211,11 @@
   function promptRepNameOverride() {
     var current = (window.SENDO_REP_CONFIG && window.SENDO_REP_CONFIG.getRepName) ? window.SENDO_REP_CONFIG.getRepName() : "";
     var input = window.prompt(
-      "担当者名を入力してください。\n" +
-      "Hearing Sheetのフォルダ名・{担当者名}_App_Analysisのファイル名と、\n" +
-      "一字一句(全角半角・スペースまで)完全に一致させてください。\n" +
-      "例: Nine (Pacharach Phanyapornsuk)",
+      tr("auth.repNamePromptTitle",
+        "担当者名を入力してください。\n" +
+        "Hearing Sheetのフォルダ名・{担当者名}_App_Analysisのファイル名と、\n" +
+        "一字一句(全角半角・スペースまで)完全に一致させてください。\n" +
+        "例: Nine (Pacharach Phanyapornsuk)"),
       current
     );
     if (input === null) return; // キャンセル

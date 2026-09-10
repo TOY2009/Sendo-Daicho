@@ -1,6 +1,10 @@
 (function () {
   "use strict";
 
+  function t(key, vars) {
+    return window.I18n ? I18n.t(key, vars) : key;
+  }
+
   function todayKey() {
     var d = new Date();
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -125,7 +129,11 @@
 
   var MEETING_PREFIX = "【Sales】";
   var FUTURE_DAYS = 7; // 本日より先、何日分の予定を閲覧用に先読みするか
-  var WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
+
+  function weekdayLabel(dayIndex) {
+    var keys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    return t("weekday." + keys[dayIndex]);
+  }
 
   function calendarTimeRange() {
     var start = new Date();
@@ -143,7 +151,7 @@
   function formatFutureDateHeading(dateKey) {
     var parts = dateKey.split("-").map(Number);
     var d = new Date(parts[0], parts[1] - 1, parts[2]);
-    return parts[1] + "/" + parts[2] + "(" + WEEKDAY_LABELS[d.getDay()] + ")";
+    return parts[1] + "/" + parts[2] + "(" + weekdayLabel(d.getDay()) + ")";
   }
 
   function extractMeetingName(summary) {
@@ -264,19 +272,19 @@
   function renderFutureAppointments() {
     if (!els.futureList) return;
     if (syncStatus === "unauthenticated") {
-      els.futureList.innerHTML = '<div class="empty-hint">Googleアカウントでログインすると今後の予定が表示されます</div>';
+      els.futureList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("schedule.loginToSeeFuture")) + '</div>';
       return;
     }
     if (syncStatus === "loading" && futureAppointments.length === 0) {
-      els.futureList.innerHTML = '<div class="empty-hint">予定を読み込み中…</div>';
+      els.futureList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("schedule.loadingUpcoming")) + '</div>';
       return;
     }
     if (syncStatus === "error") {
-      els.futureList.innerHTML = '<div class="empty-hint">予定の取得に失敗しました</div>';
+      els.futureList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("schedule.loadUpcomingFailed")) + '</div>';
       return;
     }
     if (futureAppointments.length === 0) {
-      els.futureList.innerHTML = '<div class="empty-hint">今後' + FUTURE_DAYS + '日以内の予定はありません</div>';
+      els.futureList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("schedule.noUpcoming", { days: FUTURE_DAYS })) + '</div>';
       return;
     }
     els.futureList.innerHTML = futureAppointments.map(function (group) {
@@ -288,7 +296,7 @@
             '<span class="history-name">' + escapeHtml(v.name) + '</span>' +
             metaHtml +
           '</span>' +
-          '<button class="visit-delete" type="button" data-delete-id="' + v.id + '" aria-label="削除">🗑</button>' +
+          '<button class="visit-delete" type="button" data-delete-id="' + v.id + '" aria-label="' + escapeHtml(t("common.delete")) + '">🗑</button>' +
         '</div>';
       }).join("");
       return '<div class="future-date-heading">' + escapeHtml(formatFutureDateHeading(group.dateKey)) + '</div>' + rows;
@@ -379,9 +387,9 @@
   function badgeForVisit(visit) {
     if (visit.status !== "arrived") return "";
     var nippouStatus = getNippouStatus(visit.id);
-    if (nippouStatus === "done") return '<span class="badge badge-done">🟢 完了</span>';
-    if (nippouStatus === "tentative") return '<span class="badge badge-tentative">🟡 仮</span>';
-    return '<span class="badge badge-not-reported">🔴 未報告</span>';
+    if (nippouStatus === "done") return '<span class="badge badge-done">' + escapeHtml(t("schedule.badgeDone")) + '</span>';
+    if (nippouStatus === "tentative") return '<span class="badge badge-tentative">' + escapeHtml(t("schedule.badgeTentative")) + '</span>';
+    return '<span class="badge badge-not-reported">' + escapeHtml(t("schedule.badgeNotReported")) + '</span>';
   }
 
   function renderVisitRow(visit) {
@@ -389,34 +397,32 @@
     var arrived = visit.status === "arrived";
     var metaParts = [];
     if (arrived) {
-      metaParts.push("到着 " + formatTime(visit.arrivedAt));
+      metaParts.push(escapeHtml(t("schedule.arrivedAt", { time: formatTime(visit.arrivedAt) })));
       metaParts.push(badgeForVisit(visit));
     } else if (future) {
       var startMs = visit.startDateTime ? new Date(visit.startDateTime).getTime() : parseTodayTime(visit.time).getTime();
       var availableAt = new Date(startMs - EARLY_ACCESS_MS);
       var availableLabel = (availableAt.getMonth() + 1) + "/" + availableAt.getDate() + " " +
         String(availableAt.getHours()).padStart(2, "0") + ":" + String(availableAt.getMinutes()).padStart(2, "0");
-      metaParts.push('<span class="future-tag">' + availableLabel + " から対応可</span>");
-    } else if (visit.type === "appointment") {
-      metaParts.push("未対応");
+      metaParts.push('<span class="future-tag">' + escapeHtml(t("schedule.availableFrom", { time: availableLabel })) + '</span>');
     } else {
-      metaParts.push("未対応");
+      metaParts.push(escapeHtml(t("schedule.notHandled")));
     }
 
-    var timeLabel = visit.type === "appointment" ? visit.time : "Walk In";
+    var timeLabel = visit.type === "appointment" ? visit.time : t("schedule.walkinTimeLabel");
     var disabledAttr = future ? "disabled" : "";
     var row = document.createElement("div");
     row.className = "visit-row";
     row.innerHTML =
       '<button class="visit-main" type="button" data-visit-id="' + visit.id + '" ' + disabledAttr + '>' +
-        '<span class="visit-time">' + timeLabel + '</span>' +
+        '<span class="visit-time">' + escapeHtml(timeLabel) + '</span>' +
         '<span class="visit-info">' +
           '<span class="visit-name">' + escapeHtml(visit.name) + '</span>' +
           '<span class="visit-meta">' + metaParts.join(" ") + '</span>' +
         '</span>' +
         '<span class="visit-chevron" aria-hidden="true">' + (future ? "" : "›") + '</span>' +
       '</button>' +
-      '<button class="visit-delete" type="button" data-delete-id="' + visit.id + '" aria-label="削除">🗑</button>';
+      '<button class="visit-delete" type="button" data-delete-id="' + visit.id + '" aria-label="' + escapeHtml(t("common.delete")) + '">🗑</button>';
     return row;
   }
 
@@ -486,17 +492,17 @@
     if (!els.historyList) return;
     historyEntries = collectNippouHistory();
     if (historyEntries.length === 0) {
-      els.historyList.innerHTML = '<div class="empty-hint">過去の日報はまだありません</div>';
+      els.historyList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("schedule.noHistory")) + '</div>';
       return;
     }
     els.historyList.innerHTML = historyEntries.map(function (e, i) {
       var timeLabel = e.submittedAt ? formatTime(e.submittedAt) : "";
-      var countLabel = e.products.length + "品";
+      var countLabel = t("schedule.historyProductCount", { n: e.products.length });
       return '<button type="button" class="history-row" data-history-index="' + i + '">' +
         '<span class="history-date">' + escapeHtml(formatHistoryDate(e.dateKey)) + '</span>' +
         '<span class="history-info">' +
           '<span class="history-name">' + escapeHtml(e.name) + '</span>' +
-          '<span class="history-meta">最終提出 ' + escapeHtml(timeLabel) + ' ・ ' + escapeHtml(countLabel) + '</span>' +
+          '<span class="history-meta">' + escapeHtml(t("schedule.historyLastSubmitted")) + escapeHtml(timeLabel) + ' ・ ' + escapeHtml(countLabel) + '</span>' +
         '</span>' +
         '<span class="history-chevron" aria-hidden="true">›</span>' +
       '</button>';
@@ -520,22 +526,24 @@
 
     els.historyDetailTitle.textContent = entry.name;
     els.historyDetailSubtitle.textContent =
-      formatHistoryDate(entry.dateKey) + "(最終提出 " + (entry.submittedAt ? formatTime(entry.submittedAt) : "—") + "・閲覧のみ)";
+      formatHistoryDate(entry.dateKey) + "(" + t("schedule.historyLastSubmitted") +
+      (entry.submittedAt ? formatTime(entry.submittedAt) : "—") + "・" + t("schedule.historyDetailViewOnly") + ")";
 
     els.historyDetailProducts.innerHTML = entry.products.map(function (p) {
       var refParts = [];
       if (p.itemCode) refParts.push(escapeHtml(p.itemCode));
       if (p.unit) refParts.push(escapeHtml(p.unit));
       var refHtml = refParts.length ? ' <span class="history-detail-ref">' + refParts.join(" ・ ") + '</span>' : "";
+      var rankLabel = p.rank ? t("schedule.historyRank", { rank: p.rank }) : t("schedule.historyUnrated");
       return '<div class="history-detail-product">' +
         '<div class="history-detail-product-head">' +
           '<span class="history-detail-name">' + escapeHtml(p.name) + refHtml + '</span>' +
-          '<span class="badge ' + (p.rank ? "badge-done" : "badge-skipped") + '">' + (p.rank ? "ランク " + escapeHtml(p.rank) : "未評価") + '</span>' +
+          '<span class="badge ' + (p.rank ? "badge-done" : "badge-skipped") + '">' + escapeHtml(rankLabel) + '</span>' +
         '</div>' +
-        '<div class="kv-row"><span class="k">仕入れ額/月 (฿)</span><span>' + escapeHtml(formatFigureRange(p.stockMin, p.stockMax)) + '</span></div>' +
-        '<div class="kv-row"><span class="k">使用量</span><span>' + escapeHtml(formatFigureRange(p.usageMin, p.usageMax)) + '</span></div>' +
-        '<div class="kv-row"><span class="k">Target Price (฿)</span><span>' + escapeHtml(formatFigureRange(p.priceMin, p.priceMax)) + '</span></div>' +
-        '<div class="kv-row"><span class="k">Remarks</span><span>' + escapeHtml(p.remarks || "—") + '</span></div>' +
+        '<div class="kv-row"><span class="k">' + escapeHtml(t("schedule.historyStock")) + '</span><span>' + escapeHtml(formatFigureRange(p.stockMin, p.stockMax)) + '</span></div>' +
+        '<div class="kv-row"><span class="k">' + escapeHtml(t("schedule.historyUsage")) + '</span><span>' + escapeHtml(formatFigureRange(p.usageMin, p.usageMax)) + '</span></div>' +
+        '<div class="kv-row"><span class="k">' + escapeHtml(t("schedule.historyTargetPrice")) + '</span><span>' + escapeHtml(formatFigureRange(p.priceMin, p.priceMax)) + '</span></div>' +
+        '<div class="kv-row"><span class="k">' + escapeHtml(t("schedule.historyRemarks")) + '</span><span>' + escapeHtml(p.remarks || "—") + '</span></div>' +
       '</div>';
     }).join("");
 
@@ -568,13 +576,13 @@
     var arrived = visit.status === "arrived";
     var arrivalItemHtml;
     if (arrived) {
-      var locText = visit.location ? "位置情報を取得済み" : "位置情報は取得できませんでした";
+      var locText = visit.location ? t("schedule.taskArrivalLocOk") : t("schedule.taskArrivalLocFail");
       arrivalItemHtml =
         '<div class="task-item is-done">' +
           '<span class="task-check">✓</span>' +
           '<span class="task-body">' +
-            '<span class="task-label">① 到着</span>' +
-            '<span class="task-sub">' + formatTime(visit.arrivedAt) + ' に記録 ・ ' + locText + '</span>' +
+            '<span class="task-label">' + escapeHtml(t("schedule.taskArrival")) + '</span>' +
+            '<span class="task-sub">' + escapeHtml(t("schedule.taskArrivalDoneSub", { time: formatTime(visit.arrivedAt), locText: locText })) + '</span>' +
           '</span>' +
         '</div>';
     } else {
@@ -582,10 +590,10 @@
         '<div class="task-item">' +
           '<span class="task-check"></span>' +
           '<span class="task-body">' +
-            '<span class="task-label">① 到着</span>' +
-            '<span class="task-sub">ボタンを押すと位置情報・時刻を記録します</span>' +
+            '<span class="task-label">' + escapeHtml(t("schedule.taskArrival")) + '</span>' +
+            '<span class="task-sub">' + escapeHtml(t("schedule.taskArrivalPendingSub")) + '</span>' +
           '</span>' +
-          '<button class="task-link" type="button" id="task-arrival-btn">📍 到着確認</button>' +
+          '<button class="task-link" type="button" id="task-arrival-btn">' + escapeHtml(t("schedule.taskArrivalBtn")) + '</button>' +
         '</div>';
     }
 
@@ -594,24 +602,24 @@
 
     var nippouSub;
     if (!arrived) {
-      nippouSub = "①の後に解放されます";
+      nippouSub = t("schedule.nippouSubLocked");
     } else if (nippouStatus === "done") {
-      nippouSub = "提出済み(全項目入力済み)";
+      nippouSub = t("schedule.nippouSubDone");
     } else if (nippouStatus === "tentative") {
-      nippouSub = "提出済み(ランクのみ・一部項目は空欄)";
+      nippouSub = t("schedule.nippouSubTentative");
     } else {
-      nippouSub = "訪問後の商品評価・所感を入力";
+      nippouSub = t("schedule.nippouSubOpen");
     }
 
     var nippouItemHtml =
       '<div class="task-item' + (nippouSubmitted ? ' is-done' : (arrived ? '' : ' is-locked')) + '">' +
         '<span class="task-check">' + (nippouSubmitted ? '✓' : '') + '</span>' +
         '<span class="task-body">' +
-          '<span class="task-label">② 日報を書く</span>' +
-          '<span class="task-sub">' + nippouSub + '</span>' +
+          '<span class="task-label">' + escapeHtml(t("schedule.taskNippou")) + '</span>' +
+          '<span class="task-sub">' + escapeHtml(nippouSub) + '</span>' +
         '</span>' +
         '<button class="task-link" type="button" id="task-nippou-link"' + (arrived ? '' : ' disabled') + '>' +
-          (arrived ? (nippouSubmitted ? '編集する' : '入力する') : 'ロック中') +
+          escapeHtml(arrived ? (nippouSubmitted ? t("schedule.nippouEdit") : t("schedule.nippouEnter")) : t("schedule.locked")) +
         '</button>' +
       '</div>';
 
@@ -620,34 +628,37 @@
 
     var needsSub;
     if (!nippouSubmitted) {
-      needsSub = "②の後に解放されます";
+      needsSub = t("schedule.needsSubLocked");
     } else if (needsSubmitted) {
-      needsSub = (needsRecord.memo ? needsRecord.memo : "特になし") + "(" + formatTime(needsRecord.submittedAt) + " 記録)";
+      needsSub = t("schedule.needsSubDoneRecorded", {
+        memo: needsRecord.memo ? needsRecord.memo : t("schedule.needsSubDoneNone"),
+        time: formatTime(needsRecord.submittedAt)
+      });
     } else {
-      needsSub = "訪問先の新しいニーズ・要望を記入(なければ空欄のまま記録可)";
+      needsSub = t("schedule.needsSubOpen");
     }
 
-    var needsToggleLabel = needsEditorOpen ? "閉じる" : (needsSubmitted ? "編集する" : "入力する");
+    var needsToggleLabel = needsEditorOpen ? t("schedule.needsToggleClose") : (needsSubmitted ? t("schedule.nippouEdit") : t("schedule.nippouEnter"));
     var needsItemHtml =
       '<div class="task-item' + (needsSubmitted ? ' is-done' : (nippouSubmitted ? '' : ' is-locked')) + '">' +
         '<span class="task-check">' + (needsSubmitted ? '✓' : '') + '</span>' +
         '<span class="task-body">' +
-          '<span class="task-label">③ 新規ニーズ確認</span>' +
+          '<span class="task-label">' + escapeHtml(t("schedule.taskNeeds")) + '</span>' +
           '<span class="task-sub">' + escapeHtml(needsSub) + '</span>' +
         '</span>' +
         '<button class="task-link" type="button" id="task-needs-toggle"' + (nippouSubmitted ? '' : ' disabled') + '>' +
-          (nippouSubmitted ? needsToggleLabel : 'ロック中') +
+          escapeHtml(nippouSubmitted ? needsToggleLabel : t("schedule.locked")) +
         '</button>' +
       '</div>' +
       (nippouSubmitted && needsEditorOpen ?
         '<div class="needs-editor">' +
           '<div class="field-group">' +
-            '<label>新規ニーズ・要望メモ(任意)</label>' +
-            '<textarea id="needs-memo-input" placeholder="例: 新しいメニューでウニの仕入れを検討中とのこと">' + escapeHtml(needsRecord ? needsRecord.memo : '') + '</textarea>' +
+            '<label>' + escapeHtml(t("schedule.needsMemoLabel")) + '</label>' +
+            '<textarea id="needs-memo-input" placeholder="' + escapeHtml(t("schedule.needsMemoPlaceholder")) + '">' + escapeHtml(needsRecord ? needsRecord.memo : '') + '</textarea>' +
           '</div>' +
           '<div class="modal-actions">' +
-            '<button class="btn btn-secondary" type="button" id="needs-cancel-btn">キャンセル</button>' +
-            '<button class="btn btn-primary" type="button" id="needs-save-btn">記録する</button>' +
+            '<button class="btn btn-secondary" type="button" id="needs-cancel-btn">' + escapeHtml(t("common.cancel")) + '</button>' +
+            '<button class="btn btn-primary" type="button" id="needs-save-btn">' + escapeHtml(t("schedule.needsSaveBtn")) + '</button>' +
           '</div>' +
         '</div>' : '');
 
@@ -655,18 +666,18 @@
       '<div class="task-item is-locked">' +
         '<span class="task-check"></span>' +
         '<span class="task-body">' +
-          '<span class="task-label">④ 課ごとの確認項目</span>' +
-          '<span class="task-sub">' + (needsSubmitted ? "近日実装予定です(課ごとに内容が異なります)" : "③の後に解放されます(課ごとに内容が異なります)") + '</span>' +
+          '<span class="task-label">' + escapeHtml(t("schedule.taskFollowUp")) + '</span>' +
+          '<span class="task-sub">' + escapeHtml(needsSubmitted ? t("schedule.taskFollowUpComingSoon") : t("schedule.taskFollowUpLocked")) + '</span>' +
         '</span>' +
-        '<button class="task-link" type="button" disabled>ロック中</button>' +
+        '<button class="task-link" type="button" disabled>' + escapeHtml(t("schedule.locked")) + '</button>' +
       '</div>';
 
     var panel = document.createElement("div");
     panel.className = "task-panel";
     panel.innerHTML =
       '<div class="task-panel-header">' +
-        '<span class="task-panel-title">' + escapeHtml(visit.name) + ' のタスク</span>' +
-        '<button class="task-panel-close" type="button" id="task-panel-close" aria-label="閉じる">✕</button>' +
+        '<span class="task-panel-title">' + escapeHtml(t("schedule.taskPanelTitle", { name: visit.name })) + '</span>' +
+        '<button class="task-panel-close" type="button" id="task-panel-close" aria-label="' + escapeHtml(t("common.close")) + '">✕</button>' +
       '</div>' +
 
       arrivalItemHtml +
@@ -692,7 +703,7 @@
     } else {
       document.getElementById("task-arrival-btn").addEventListener("click", function (e) {
         e.target.disabled = true;
-        e.target.textContent = "取得中…";
+        e.target.textContent = t("schedule.taskArrivalGetting");
         recordArrival(visit);
       });
     }
@@ -713,7 +724,7 @@
         var memo = document.getElementById("needs-memo-input").value.trim();
         var btn = document.getElementById("needs-save-btn");
         btn.disabled = true;
-        btn.textContent = "記録中…";
+        btn.textContent = t("schedule.needsSaving");
 
         var startDateTime = visit.type === "appointment" ? visit.startDateTime : visit.arrivedAt;
         var dateTimeStr = startDateTime && window.AnalysisLog ? AnalysisLog.formatAnalysisDateTime(new Date(startDateTime)) : null;
@@ -725,16 +736,16 @@
           saveNeedsRecord(visit.id, memo);
           needsEditorOpen = false;
           renderTaskPanel();
-          showToast(memo ? "新規ニーズを記録しました" : "「特になし」として記録しました");
+          showToast(memo ? t("schedule.needsSavedToastMemo") : t("schedule.needsSavedToastNone"));
         }).catch(function (err) {
           console.warn("failed to log needs to analysis sheet", err);
-          var msg = "評価ログへの書き込みに失敗しました。もう一度お試しください";
-          if (err && err.type === "rep-not-configured") msg = "担当者名が未設定です(js/rep-config.js)";
-          else if (err && err.type === "file-not-found") msg = "評価ログの書き込み先が見つかりませんでした";
-          else if (err && err.type === "no-matching-rows") msg = "対応する行が見つかりませんでした";
+          var msg = t("schedule.needsSaveFailed");
+          if (err && err.type === "rep-not-configured") msg = t("schedule.repNotConfigured");
+          else if (err && err.type === "file-not-found") msg = t("schedule.analysisFileNotFound");
+          else if (err && err.type === "no-matching-rows") msg = t("schedule.noMatchingRows");
           showToast(msg);
           btn.disabled = false;
-          btn.textContent = "記録する";
+          btn.textContent = t("schedule.needsSaveBtn");
         });
       });
     }
@@ -745,24 +756,24 @@
     var arrived = all.filter(function (v) { return v.status === "arrived"; }).length;
     var pending = all.filter(function (v) { return v.status !== "arrived" && !isFuture(v); }).length;
     els.ticker.innerHTML =
-      '<div class="tick"><div class="label">本日の予定</div><div class="val">' + all.length + '</div></div>' +
-      '<div class="tick"><div class="label">到着済み</div><div class="val good">' + arrived + '</div></div>' +
-      '<div class="tick"><div class="label">未対応</div><div class="val' + (pending > 0 ? ' warn' : '') + '">' + pending + '</div></div>';
+      '<div class="tick"><div class="label">' + escapeHtml(t("schedule.tickerToday")) + '</div><div class="val">' + all.length + '</div></div>' +
+      '<div class="tick"><div class="label">' + escapeHtml(t("schedule.tickerArrived")) + '</div><div class="val good">' + arrived + '</div></div>' +
+      '<div class="tick"><div class="label">' + escapeHtml(t("schedule.tickerPending")) + '</div><div class="val' + (pending > 0 ? ' warn' : '') + '">' + pending + '</div></div>';
   }
 
   function render() {
     renderTicker();
     els.appointmentList.innerHTML = "";
     if (syncStatus === "unauthenticated") {
-      els.appointmentList.innerHTML = '<div class="empty-hint">Googleアカウントでログインすると本日の予定が表示されます</div>';
+      els.appointmentList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("schedule.loginToSeeToday")) + '</div>';
     } else if (syncStatus === "loading" && state.appointments.length === 0) {
-      els.appointmentList.innerHTML = '<div class="empty-hint">予定を読み込み中…</div>';
+      els.appointmentList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("schedule.loadingSchedule")) + '</div>';
     } else if (syncStatus === "error") {
       els.appointmentList.innerHTML =
-        '<div class="empty-hint">予定の取得に失敗しました<br>' +
-        '<button class="task-link" type="button" id="calendar-retry-btn">再試行</button></div>';
+        '<div class="empty-hint">' + escapeHtml(t("schedule.loadFailed")) + '<br>' +
+        '<button class="task-link" type="button" id="calendar-retry-btn">' + escapeHtml(t("common.retry")) + '</button></div>';
     } else if (state.appointments.length === 0) {
-      els.appointmentList.innerHTML = '<div class="empty-hint">本日のアポイントメントはありません</div>';
+      els.appointmentList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("schedule.noAppointmentsToday")) + '</div>';
     } else {
       state.appointments
         .slice()
@@ -772,7 +783,7 @@
 
     els.walkinList.innerHTML = "";
     if (state.walkins.length === 0) {
-      els.walkinList.innerHTML = '<div class="empty-hint">本日のWalk In訪問はまだありません</div>';
+      els.walkinList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("schedule.noWalkinsToday")) + '</div>';
     } else {
       state.walkins.forEach(function (v) { els.walkinList.appendChild(renderVisitRow(v)); });
     }
@@ -850,7 +861,7 @@
   }
 
   function recordArrival(visit) {
-    showToast("📍 位置情報を取得しています…");
+    showToast(t("schedule.arrivingToast"));
     getLocation().then(function (loc) {
       visit.status = "arrived";
       visit.arrivedAt = new Date().toISOString();
@@ -858,7 +869,7 @@
       state.activeVisitId = visit.id;
       saveState();
       render();
-      showToast(loc ? "到着を記録しました(位置情報を取得できました)" : "到着を記録しました(位置情報は取得できませんでした)");
+      showToast(loc ? t("schedule.arrivedToastOk") : t("schedule.arrivedToastNoLoc"));
 
       if (loc && window.AnalysisLog) {
         var mapLink = "https://www.google.com/maps?q=" + loc.lat + "," + loc.lng;
@@ -875,7 +886,7 @@
       }
 
       if (visit.type === "appointment" && visit.id.indexOf("gcal-") === 0 && !visit.calendarLocation) {
-        alert("この予定には位置情報が登録されていません。カレンダーに登録してください");
+        alert(t("schedule.locationAlert"));
       }
     });
   }
@@ -893,7 +904,7 @@
   }
 
   function confirmWalkin() {
-    var name = els.walkinNameInput.value.trim() || "Walk In";
+    var name = els.walkinNameInput.value.trim() || t("schedule.walkinTimeLabel");
     var visit = {
       id: "walkin-" + Date.now(),
       type: "walkin",
@@ -908,7 +919,7 @@
     saveState();
     closeWalkinModal();
     render();
-    showToast("Walk Inを追加しました。到着確認ボタンを押してください");
+    showToast(t("schedule.walkinAddedToast"));
   }
 
   // ---- Delete modal ----
@@ -917,11 +928,11 @@
     var visit = findVisit(id);
     if (!visit) return;
     pendingDeleteId = id;
-    var label = visit.type === "walkin" ? visit.name + "(Walk In)" : visit.name + "(" + visit.time + ")";
+    var label = visit.type === "walkin" ? visit.name + "(" + t("schedule.walkinTimeLabel") + ")" : visit.name + "(" + visit.time + ")";
     var isCalendarEvent = id.indexOf("gcal-") === 0;
     els.deleteModalText.textContent = isCalendarEvent
-      ? "「" + label + "」を削除します。Googleカレンダー側の予定も削除されます。"
-      : "「" + label + "」をアプリ内の予定から削除します。";
+      ? t("schedule.deleteTextCalendar", { label: label })
+      : t("schedule.deleteTextLocal", { label: label });
     els.deleteModal.hidden = false;
   }
 
@@ -956,7 +967,7 @@
       removeVisitLocally(id);
       closeDeleteModal();
       render();
-      showToast("削除しました");
+      showToast(t("schedule.deletedToastLocal"));
       return;
     }
 
@@ -967,7 +978,7 @@
       : null;
 
     els.deleteConfirmBtn.disabled = true;
-    els.deleteConfirmBtn.textContent = "削除中…";
+    els.deleteConfirmBtn.textContent = t("common.deleting");
 
     var analysisCleanup = (dateTimeStr && visit)
       ? Promise.all([
@@ -992,20 +1003,20 @@
         render();
       }
       closeDeleteModal();
-      showToast("Googleカレンダーの予定を削除しました");
+      showToast(t("schedule.deletedToastCalendar"));
     }).catch(function (err) {
       console.warn("calendar/analysis event delete failed", err);
       closeDeleteModal();
-      var msg = "削除に失敗しました。もう一度お試しください";
+      var msg = t("schedule.deleteFailed");
       if (err && err.type === "forbidden") {
-        msg = "削除権限がありません。ログアウトして再度ログインしてください";
+        msg = t("schedule.deleteForbidden");
       } else if (err && (err.type === "unauthorized" || err.type === "unauthenticated")) {
-        msg = "ログインの有効期限が切れています。再度ログインしてください";
+        msg = t("schedule.deleteAuthExpired");
       }
       showToast(msg);
     }).then(function () {
       els.deleteConfirmBtn.disabled = false;
-      els.deleteConfirmBtn.textContent = "削除する";
+      els.deleteConfirmBtn.textContent = t("common.delete");
     });
   }
 

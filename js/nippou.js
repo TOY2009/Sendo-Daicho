@@ -1,6 +1,10 @@
 (function () {
   "use strict";
 
+  function t(key, vars) {
+    return window.I18n ? I18n.t(key, vars) : key;
+  }
+
   var RANKS = ["S", "A", "B", "C", "D"];
 
   function todayKey() {
@@ -30,7 +34,7 @@
   };
 
   if (els.visitNameLabel) {
-    els.visitNameLabel.textContent = visitName + " の日報";
+    els.visitNameLabel.textContent = visitName + t("nippou.pageTitleSuffix");
   }
 
   var toastTimer = null;
@@ -199,9 +203,9 @@
   }
 
   function statusBadge(status) {
-    if (status === "done") return '<span class="badge badge-done">🟢 完了</span>';
-    if (status === "tentative") return '<span class="badge badge-tentative">🟡 仮</span>';
-    return '<span class="badge badge-skipped">未評価</span>';
+    if (status === "done") return '<span class="badge badge-done">' + escapeHtml(t("nippou.badgeDone")) + '</span>';
+    if (status === "tentative") return '<span class="badge badge-tentative">' + escapeHtml(t("nippou.badgeTentative")) + '</span>';
+    return '<span class="badge badge-skipped">' + escapeHtml(t("nippou.badgeUnrated")) + '</span>';
   }
 
   function escapeHtml(str) {
@@ -228,7 +232,7 @@
     if (p.unit) refParts.push(escapeHtml(p.unit));
     var refHtml = refParts.length ? '<span class="product-ref">' + refParts.join(" ・ ") + '</span>' : "";
     var removeBtnHtml = p.removable
-      ? '<button type="button" class="product-remove" data-remove="' + i + '" aria-label="削除">🗑</button>'
+      ? '<button type="button" class="product-remove" data-remove="' + i + '" aria-label="' + escapeHtml(t("common.delete")) + '">🗑</button>'
       : "";
 
     item.innerHTML =
@@ -245,7 +249,7 @@
       '</div>' +
       '<div class="product-body">' +
         '<div class="field-group">' +
-          '<label>仕入れ額/月 (฿) ・ Min 〜 Max</label>' +
+          '<label>' + escapeHtml(t("nippou.stockLabel")) + '</label>' +
           '<div class="range-inputs">' +
             '<input type="number" inputmode="decimal" data-field="stockMin" value="' + p.stockMin + '" placeholder="Min">' +
             '<span class="range-sep">〜</span>' +
@@ -253,7 +257,7 @@
           '</div>' +
         '</div>' +
         '<div class="field-group">' +
-          '<label>使用量 ・ Min 〜 Max</label>' +
+          '<label>' + escapeHtml(t("nippou.usageLabel")) + '</label>' +
           '<div class="range-inputs">' +
             '<input type="number" inputmode="decimal" data-field="usageMin" value="' + p.usageMin + '" placeholder="Min">' +
             '<span class="range-sep">〜</span>' +
@@ -261,7 +265,7 @@
           '</div>' +
         '</div>' +
         '<div class="field-group">' +
-          '<label>Target Price (฿) ・ Min 〜 Max</label>' +
+          '<label>' + escapeHtml(t("nippou.targetPriceLabel")) + '</label>' +
           '<div class="range-inputs">' +
             '<input type="number" inputmode="decimal" data-field="priceMin" value="' + p.priceMin + '" placeholder="Min">' +
             '<span class="range-sep">〜</span>' +
@@ -269,11 +273,11 @@
           '</div>' +
         '</div>' +
         '<div class="field-group">' +
-          '<label>Remarks</label>' +
-          '<textarea data-field="remarks" placeholder="所感・特記事項など">' + escapeHtml(p.remarks) + '</textarea>' +
+          '<label>' + escapeHtml(t("nippou.remarksLabel")) + '</label>' +
+          '<textarea data-field="remarks" placeholder="' + escapeHtml(t("nippou.remarksPlaceholder")) + '">' + escapeHtml(p.remarks) + '</textarea>' +
         '</div>' +
         '<div class="field-group">' +
-          '<label>評価ランク(必須)</label>' +
+          '<label>' + escapeHtml(t("nippou.rankLabel")) + '</label>' +
           renderRankPicker(p) +
         '</div>' +
       '</div>';
@@ -285,9 +289,9 @@
   function formatCandidateDebug(debug) {
     if (!debug) return "";
     var lines = [];
-    if (debug.dateTimeStr != null) lines.push("検索日時: " + JSON.stringify(debug.dateTimeStr));
-    if (debug.venue != null) lines.push("検索訪問先: " + JSON.stringify(debug.venue));
-    if (debug.count != null) lines.push("見つかった候補数: " + debug.count);
+    if (debug.dateTimeStr != null) lines.push(t("nippou.debugSearchDateTime") + JSON.stringify(debug.dateTimeStr));
+    if (debug.venue != null) lines.push(t("nippou.debugSearchVenue") + JSON.stringify(debug.venue));
+    if (debug.count != null) lines.push(t("nippou.debugFoundCount") + debug.count);
     if (lines.length === 0) return "";
     return '<div style="font-size:10px; color:var(--ink-faint); text-align:left; margin-top:8px; padding:8px; background:var(--paper-dim); border-radius:8px; white-space:pre-wrap;">' +
       escapeHtml(lines.join("\n")) + '</div>';
@@ -307,11 +311,11 @@
     if (!record) {
       if (loadStatus === "error") {
         els.productList.innerHTML =
-          '<div class="empty-hint">候補商品の取得に失敗しました<br>' +
-          '<button class="task-link" type="button" id="candidates-retry-btn">再試行</button></div>';
+          '<div class="empty-hint">' + escapeHtml(t("nippou.loadFailed")) + '<br>' +
+          '<button class="task-link" type="button" id="candidates-retry-btn">' + escapeHtml(t("common.retry")) + '</button></div>';
         bindCandidatesRetryButton();
       } else {
-        els.productList.innerHTML = '<div class="empty-hint">候補商品を読み込み中…</div>';
+        els.productList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("nippou.loadingCandidates")) + '</div>';
       }
       updateSubmitState();
       updateAddButton();
@@ -320,19 +324,19 @@
 
     if (record.candidateStatus === "unmatched") {
       els.productList.innerHTML =
-        '<div class="empty-hint">対応するHearing Sheetが見つかりませんでした<br>' +
-        '<span style="font-size:11px;">HSダウンロード直後は反映まで数秒かかることがあります</span><br>' +
-        '<button class="task-link" type="button" id="candidates-retry-btn">再試行</button>' +
+        '<div class="empty-hint">' + escapeHtml(t("nippou.notFound")) + '<br>' +
+        '<span style="font-size:11px;">' + escapeHtml(t("nippou.notFoundHint")) + '</span><br>' +
+        '<button class="task-link" type="button" id="candidates-retry-btn">' + escapeHtml(t("common.retry")) + '</button>' +
         formatCandidateDebug(record.candidateDebug) + '</div>';
       bindCandidatesRetryButton();
     } else if (record.products.length === 0) {
       if (isWalkin) {
-        els.productList.innerHTML = '<div class="empty-hint">商品が追加されていません</div>';
+        els.productList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("nippou.noWalkinProducts")) + '</div>';
       } else {
         els.productList.innerHTML =
-          '<div class="empty-hint">候補商品がありません<br>' +
-          '<span style="font-size:11px;">Hearing Sheetの候補商品欄が空、または形式が読み取れなかった可能性があります</span><br>' +
-          '<button class="task-link" type="button" id="candidates-retry-btn">再試行</button>' +
+          '<div class="empty-hint">' + escapeHtml(t("nippou.noCandidates")) + '<br>' +
+          '<span style="font-size:11px;">' + escapeHtml(t("nippou.noCandidatesHint")) + '</span><br>' +
+          '<button class="task-link" type="button" id="candidates-retry-btn">' + escapeHtml(t("common.retry")) + '</button>' +
           formatCandidateDebug(record.candidateDebug) + '</div>';
         bindCandidatesRetryButton();
       }
@@ -383,15 +387,15 @@
         }
 
         btn.disabled = true;
-        btn.textContent = "…";
+        btn.textContent = t("nippou.productRemoving");
 
         AnalysisLog.deleteProductRow({ dateTimeStr: dateTimeStr, venue: visitName, itemCode: product.itemCode })
           .then(function (result) {
-            removeLocally(result ? "商品を削除しました(評価ログからも削除)" : "商品を削除しました");
+            removeLocally(result ? t("nippou.productRemovedWithSheet") : t("nippou.productRemoved"));
           })
           .catch(function (err) {
             console.warn("failed to delete analysis row", err);
-            showToast("評価ログの削除に失敗しました。もう一度お試しください");
+            showToast(t("nippou.productRemoveFailed"));
             btn.disabled = false;
             btn.textContent = "🗑";
           });
@@ -433,8 +437,8 @@
   function updateSubmitState() {
     if (!record || record.products.length === 0) {
       els.submitBtn.disabled = true;
-      els.submitBtn.textContent = "日報を提出する";
-      els.submitHint.textContent = record ? "商品を追加してください" : "";
+      els.submitBtn.textContent = t("nippou.submitBtnDefault");
+      els.submitHint.textContent = record ? t("nippou.submitHintAddProducts") : "";
       els.submitHint.classList.remove("is-warning");
       return;
     }
@@ -442,18 +446,18 @@
     var missing = record.products.filter(function (p) { return !p.rank; }).length;
     if (record.submitted) {
       els.submitBtn.disabled = false;
-      els.submitBtn.textContent = "再提出する";
-      els.submitHint.textContent = "提出済みです(内容を変更して再提出できます)";
+      els.submitBtn.textContent = t("nippou.submitBtnResubmit");
+      els.submitHint.textContent = t("nippou.submitHintResubmittable");
       els.submitHint.classList.remove("is-warning");
     } else if (missing > 0) {
       els.submitBtn.disabled = true;
-      els.submitBtn.textContent = "日報を提出する";
-      els.submitHint.textContent = "評価ランク未選択の商品が " + missing + " 件あります";
+      els.submitBtn.textContent = t("nippou.submitBtnDefault");
+      els.submitHint.textContent = t("nippou.submitHintMissingRank", { n: missing });
       els.submitHint.classList.add("is-warning");
     } else {
       els.submitBtn.disabled = false;
-      els.submitBtn.textContent = "日報を提出する";
-      els.submitHint.textContent = "ランク以外の項目は空欄のままでも提出できます";
+      els.submitBtn.textContent = t("nippou.submitBtnDefault");
+      els.submitHint.textContent = t("nippou.submitHintOptional");
       els.submitHint.classList.remove("is-warning");
     }
   }
@@ -463,14 +467,14 @@
   var catalogCache = null;
 
   function openAddProductModal() {
-    els.addProductSelect.innerHTML = '<option value="">読み込み中…</option>';
+    els.addProductSelect.innerHTML = '<option value="">' + escapeHtml(t("nippou.catalogLoading")) + '</option>';
     els.addProductModal.hidden = false;
 
     var loadCatalog = catalogCache ? Promise.resolve(catalogCache) : (window.ProductSource ? ProductSource.getWalkinCatalog() : Promise.resolve([]));
     loadCatalog.then(function (list) {
       catalogCache = list;
       if (list.length === 0) {
-        els.addProductSelect.innerHTML = '<option value="">商品マスタを取得できませんでした</option>';
+        els.addProductSelect.innerHTML = '<option value="">' + escapeHtml(t("nippou.catalogLoadFailed")) + '</option>';
         return;
       }
       els.addProductSelect.innerHTML = list.map(function (item, idx) {
@@ -478,7 +482,7 @@
       }).join("");
     }).catch(function (err) {
       console.warn("failed to load catalog", err);
-      els.addProductSelect.innerHTML = '<option value="">商品マスタの取得に失敗しました</option>';
+      els.addProductSelect.innerHTML = '<option value="">' + escapeHtml(t("nippou.catalogFetchError")) + '</option>';
     });
   }
 
@@ -496,7 +500,7 @@
     saveStore(store);
     closeAddProductModal();
     render();
-    showToast("商品を追加しました");
+    showToast(t("nippou.productAdded"));
   }
 
   if (els.addProductBtn) {
@@ -514,7 +518,7 @@
     if (missing > 0) return;
 
     els.submitBtn.disabled = true;
-    els.submitBtn.textContent = "書き込み中…";
+    els.submitBtn.textContent = t("nippou.submitBtnWriting");
 
     var dateTimeStr = visitStart && window.AnalysisLog ? AnalysisLog.formatAnalysisDateTime(new Date(visitStart)) : null;
     var writePromise = (window.AnalysisLog && dateTimeStr)
@@ -531,16 +535,16 @@
       record.submittedAt = new Date().toISOString();
       saveStore(store);
       updateSubmitState();
-      showToast("日報を提出しました");
+      showToast(t("nippou.submittedToast"));
       setTimeout(function () {
         window.location.href = "schedule.html";
       }, 900);
     }).catch(function (err) {
       console.warn("failed to log nippou submission", err);
-      var msg = "評価ログの書き込みに失敗しました。もう一度お試しください";
-      if (err && err.type === "rep-not-configured") msg = "担当者名が未設定です(js/rep-config.js)";
-      else if (err && err.type === "file-not-found") msg = "評価ログの書き込み先が見つかりませんでした";
-      else if (err && (err.type === "unauthenticated" || err.type === "unauthorized")) msg = "ログインの有効期限が切れています。再度ログインしてください";
+      var msg = t("nippou.submitFailed");
+      if (err && err.type === "rep-not-configured") msg = t("nippou.repNotConfigured");
+      else if (err && err.type === "file-not-found") msg = t("nippou.analysisFileNotFound");
+      else if (err && (err.type === "unauthenticated" || err.type === "unauthorized")) msg = t("nippou.authExpired");
       showToast(msg);
       updateSubmitState();
     });

@@ -17,11 +17,12 @@
 <div class="app-shell">
   <header class="app-header">
     <div class="header-nav-row">
-      <a class="back-button" href="schedule.html">‹ 本日の予定へ</a>
+      <a class="back-button" href="schedule.html" data-i18n="nippou.backToSchedule">‹ 本日の予定へ</a>
+      <div id="lang-switcher-slot"></div>
     </div>
     <div class="brand">
       <div>
-        <h1 class="app-title">日報を書く</h1>
+        <h1 class="app-title" data-i18n="nippou.pageTitle">日報を書く</h1>
         <p class="header-date" id="visit-name-label"></p>
       </div>
     </div>
@@ -30,11 +31,11 @@
   <main class="content has-submit-bar">
     <section class="section-block">
       <div class="section-title">
-        <span>オファー商品</span>
-        <span>ランクのみ必須</span>
+        <span data-i18n="nippou.offerProducts">オファー商品</span>
+        <span data-i18n="nippou.rankOnlyRequired">ランクのみ必須</span>
       </div>
       <div class="product-list" id="product-list"></div>
-      <button class="add-walkin-button" id="add-product-btn" type="button" hidden>
+      <button class="add-walkin-button" id="add-product-btn" type="button" hidden data-i18n="nippou.addProductBtn">
         <span aria-hidden="true">＋</span> 商品を追加
       </button>
     </section>
@@ -43,26 +44,27 @@
 
 <div class="modal-overlay" id="add-product-modal" hidden>
   <div class="modal-sheet">
-    <div class="modal-title">商品を追加</div>
+    <div class="modal-title" data-i18n="nippou.addProductModalTitle">商品を追加</div>
     <div class="modal-field">
-      <label for="add-product-select">商品を選択</label>
+      <label for="add-product-select" data-i18n="nippou.selectProductLabel">商品を選択</label>
       <select id="add-product-select"></select>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" id="add-product-cancel-btn" type="button">キャンセル</button>
-      <button class="btn btn-primary" id="add-product-confirm-btn" type="button">追加する</button>
+      <button class="btn btn-secondary" id="add-product-cancel-btn" type="button" data-i18n="common.cancel">キャンセル</button>
+      <button class="btn btn-primary" id="add-product-confirm-btn" type="button" data-i18n="common.add">追加する</button>
     </div>
   </div>
 </div>
 
 <div class="submit-bar">
   <p class="submit-hint" id="submit-hint"></p>
-  <button class="btn btn-primary" id="submit-btn" type="button">日報を提出する</button>
+  <button class="btn btn-primary" id="submit-btn" type="button" data-i18n="nippou.submitBtnDefault">日報を提出する</button>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="js/i18n.js"></script>
 <script src="js/auth-config.js"></script>
 <script src="js/rep-config.js"></script>
 <script src="js/auth.js"></script>

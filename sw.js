@@ -1,6 +1,6 @@
 "use strict";
 
-var CACHE_NAME = "sendo-daichou-v38";
+var CACHE_NAME = "sendo-daichou-v39";
 var PRECACHE_URLS = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ var PRECACHE_URLS = [
   "./nippou.html",
   "./css/style.css",
   "./css/ledger.css",
+  "./js/i18n.js",
   "./js/app.js",
   "./js/auth-config.js",
   "./js/rep-config.js",
