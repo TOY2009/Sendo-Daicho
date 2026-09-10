@@ -577,6 +577,8 @@
     var arrivalItemHtml;
     if (arrived) {
       var locText = visit.location ? t("schedule.taskArrivalLocOk") : t("schedule.taskArrivalLocFail");
+      var locRetryBtnHtml = visit.location ? "" :
+        '<button class="task-link" type="button" id="task-arrival-loc-retry-btn">' + escapeHtml(t("common.retry")) + '</button>';
       arrivalItemHtml =
         '<div class="task-item is-done">' +
           '<span class="task-check">✓</span>' +
@@ -584,6 +586,7 @@
             '<span class="task-label">' + escapeHtml(t("schedule.taskArrival")) + '</span>' +
             '<span class="task-sub">' + escapeHtml(t("schedule.taskArrivalDoneSub", { time: formatTime(visit.arrivedAt), locText: locText })) + '</span>' +
           '</span>' +
+          locRetryBtnHtml +
         '</div>';
     } else {
       arrivalItemHtml =
@@ -700,6 +703,14 @@
           "&name=" + encodeURIComponent(visit.name) +
           "&start=" + encodeURIComponent(startDateTime || "");
       });
+      var locRetryBtn = document.getElementById("task-arrival-loc-retry-btn");
+      if (locRetryBtn) {
+        locRetryBtn.addEventListener("click", function (e) {
+          e.target.disabled = true;
+          e.target.textContent = t("schedule.taskArrivalGetting");
+          retryLocation(visit);
+        });
+      }
     } else {
       document.getElementById("task-arrival-btn").addEventListener("click", function (e) {
         e.target.disabled = true;
@@ -887,6 +898,34 @@
 
       if (visit.type === "appointment" && visit.id.indexOf("gcal-") === 0 && !visit.calendarLocation) {
         alert(t("schedule.locationAlert"));
+      }
+    });
+  }
+
+  function retryLocation(visit) {
+    getLocation().then(function (loc) {
+      if (!loc) {
+        showToast(t("schedule.arrivedToastNoLoc"));
+        renderTaskPanel();
+        return;
+      }
+      visit.location = loc;
+      saveState();
+      renderTaskPanel();
+      showToast(t("schedule.arrivedToastOk"));
+
+      if (window.AnalysisLog) {
+        var mapLink = "https://www.google.com/maps?q=" + loc.lat + "," + loc.lng;
+        queueLocationEntry({
+          id: visit.id + "-" + visit.arrivedAt,
+          dateTimeStr: AnalysisLog.formatAnalysisDateTime(new Date(visit.arrivedAt)),
+          venue: visit.name,
+          lat: loc.lat,
+          lng: loc.lng,
+          accuracy: loc.accuracy != null ? Math.round(loc.accuracy) : "",
+          mapLink: mapLink
+        });
+        flushLocationQueue();
       }
     });
   }
