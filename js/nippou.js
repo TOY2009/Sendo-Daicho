@@ -114,7 +114,7 @@
   // ({担当者名}_App_Analysis、GASがHSダウンロード時に候補ごとの行を事前作成している)から取得する。
   // Hearing Sheetは同じ取引先で何度もコピーが作られたり空欄のまま放置されたりして不安定なため、
   // GAS・アプリの両方が常に読み書きしているAnalysisシートを唯一の情報源にする。
-  var CANDIDATE_RETRY_DELAYS_MS = [2000, 4000];
+  var CANDIDATE_RETRY_DELAYS_MS = [2000, 4000, 8000, 8000];
 
   function candidateDateTimeStr() {
     return visitStart && window.AnalysisLog ? AnalysisLog.formatAnalysisDateTime(new Date(visitStart)) : null;
