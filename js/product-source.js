@@ -1,8 +1,43 @@
 (function () {
   "use strict";
 
-  var CATALOG_HEADER_LABELS = ["商品名", "Product Name"]; // シート側の見出し変更に対応(両方受け付ける)
   var CATALOG_STORAGE_PREFIX = "sendo-catalog-";
+
+  // Product Master Referenceの列構成も今後変わりうる(実際にItem Code/Product Name/Unitの
+  // 列位置が入れ替わったことがある)ため、固定の列位置に頼らず見出しラベルの文字列で都度検出する
+  var CATALOG_COLUMN_LABELS = {
+    itemCode: ["itemcode", "商品コード"],
+    name: ["productname", "商品名"],
+    unit: ["unit", "単位"]
+  };
+
+  function normalizeForMatch(s) {
+    return String(s || "").replace(/\s+/g, "").toLowerCase();
+  }
+
+  function findCatalogHeaderRowIndex(rows) {
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      for (var c = 0; c < row.length; c++) {
+        var normalized = normalizeForMatch(row[c]);
+        if (normalized.indexOf("productname") !== -1 || normalized.indexOf("商品名") !== -1) return i;
+      }
+    }
+    return -1;
+  }
+
+  function findCatalogColumnMap(header) {
+    var map = {};
+    Object.keys(CATALOG_COLUMN_LABELS).forEach(function (field) {
+      var labels = CATALOG_COLUMN_LABELS[field];
+      for (var i = 0; i < header.length; i++) {
+        var normalized = normalizeForMatch(header[i]);
+        var found = labels.some(function (label) { return normalized.indexOf(normalizeForMatch(label)) !== -1; });
+        if (found) { map[field] = i; break; }
+      }
+    });
+    return map;
+  }
 
   function todayKey() {
     var d = new Date();
@@ -66,21 +101,18 @@
   }
 
   function parseCatalogRows(rows) {
-    var headerIdx = -1;
-    for (var i = 0; i < rows.length; i++) {
-      if (CATALOG_HEADER_LABELS.indexOf(cell(rows[i], 5)) !== -1) {
-        headerIdx = i;
-        break;
-      }
-    }
+    var headerIdx = findCatalogHeaderRowIndex(rows);
     if (headerIdx === -1) return [];
+
+    var cols = findCatalogColumnMap(rows[headerIdx]);
+    if (cols.itemCode == null || cols.name == null) return [];
 
     var byCode = {};
     for (var r = headerIdx + 1; r < rows.length; r++) {
-      var itemCode = cell(rows[r], 3);
-      var name = cell(rows[r], 5);
+      var itemCode = cell(rows[r], cols.itemCode);
+      var name = cell(rows[r], cols.name);
       if (!itemCode || !name) continue;
-      byCode[itemCode] = { itemCode: itemCode, name: name, unit: cell(rows[r], 8) };
+      byCode[itemCode] = { itemCode: itemCode, name: name, unit: cols.unit != null ? cell(rows[r], cols.unit) : "" };
     }
 
     var list = [];
@@ -108,14 +140,16 @@
 
   function getWalkinCatalog() {
     var cached = loadCatalogCache();
-    if (cached) return Promise.resolve(cached);
+    if (cached && cached.length > 0) return Promise.resolve(cached);
 
     return searchDriveFileByExactName("Product Master Reference").then(function (file) {
       if (!file) return [];
       return getFirstSheetTitle(file.id).then(function (sheetTitle) {
         return getSheetValues(file.id, sheetTitle, "A1:K2000").then(function (rows) {
           var list = parseCatalogRows(rows);
-          saveCatalogCache(list);
+          // 空リストをキャッシュすると、その日は二度と再取得されなくなってしまうため
+          // 実際に商品が取れた時だけキャッシュする
+          if (list.length > 0) saveCatalogCache(list);
           return list;
         });
       });
