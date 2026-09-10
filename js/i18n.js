@@ -26,6 +26,15 @@
       fri: { ja: "金", en: "Fri" },
       sat: { ja: "土", en: "Sat" }
     },
+    weekdayLong: {
+      sun: { ja: "日曜日", en: "Sunday" },
+      mon: { ja: "月曜日", en: "Monday" },
+      tue: { ja: "火曜日", en: "Tuesday" },
+      wed: { ja: "水曜日", en: "Wednesday" },
+      thu: { ja: "木曜日", en: "Thursday" },
+      fri: { ja: "金曜日", en: "Friday" },
+      sat: { ja: "土曜日", en: "Saturday" }
+    },
     auth: {
       unconfigured: { ja: "Google認証: 未設定です", en: "Google auth not configured" },
       signingIn: { ja: "サインイン中…", en: "Signing in…" },
