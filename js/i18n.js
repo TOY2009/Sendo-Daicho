@@ -38,7 +38,7 @@
     },
     index: {
       subtitle: { ja: "TOY Sales Department", en: "TOY Sales Department" },
-      ledgerLabel: { ja: "鮮度台帳", en: "Client Ledger" },
+      ledgerLabel: { ja: "鮮度台帳", en: "Sendo Daicho" },
       ledgerDesc: { ja: "課ごとの商談・フォロー状況を確認", en: "Check deal & follow-up status by team" },
       reportLabel: { ja: "営業報告を入力", en: "Enter Sales Report" },
       reportDesc: { ja: "本日の訪問先に到着・日報を記録", en: "Record arrival & daily report for today's visits" },
