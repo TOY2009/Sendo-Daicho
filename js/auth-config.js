@@ -1,6 +1,6 @@
 // Google Identity Services 設定。
 // 許可済みJavaScriptオリジンに http://localhost:5500 (開発用)と
-// https://ryu-toy81266.github.io (本番、GitHub Pages) を登録すること。
+// https://toy2009.github.io (本番、GitHub Pages) を登録すること。
 (function () {
   "use strict";
 
