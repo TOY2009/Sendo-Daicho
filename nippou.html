@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>日報を書く | 鮮度台帳</title>
+<meta name="theme-color" content="#231D1F">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="header-nav-row">
+      <a class="back-button" href="schedule.html">‹ 本日の予定へ</a>
+    </div>
+    <div class="brand">
+      <div>
+        <h1 class="app-title">日報を書く</h1>
+        <p class="header-date" id="visit-name-label"></p>
+      </div>
+    </div>
+  </header>
+
+  <main class="content has-submit-bar">
+    <section class="section-block">
+      <div class="section-title">
+        <span>オファー商品</span>
+        <span>ランクのみ必須</span>
+      </div>
+      <div class="product-list" id="product-list"></div>
+      <button class="add-walkin-button" id="add-product-btn" type="button" hidden>
+        <span aria-hidden="true">＋</span> 商品を追加
+      </button>
+    </section>
+  </main>
+</div>
+
+<div class="modal-overlay" id="add-product-modal" hidden>
+  <div class="modal-sheet">
+    <div class="modal-title">商品を追加</div>
+    <div class="modal-field">
+      <label for="add-product-select">商品を選択</label>
+      <select id="add-product-select"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="add-product-cancel-btn" type="button">キャンセル</button>
+      <button class="btn btn-primary" id="add-product-confirm-btn" type="button">追加する</button>
+    </div>
+  </div>
+</div>
+
+<div class="submit-bar">
+  <p class="submit-hint" id="submit-hint"></p>
+  <button class="btn btn-primary" id="submit-btn" type="button">日報を提出する</button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="js/auth-config.js"></script>
+<script src="js/rep-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/google-api.js"></script>
+<script src="js/product-source.js"></script>
+<script src="js/analysis-log.js"></script>
+<script src="js/app.js"></script>
+<script src="js/nippou.js"></script>
+</body>
+</html>

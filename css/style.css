@@ -1,0 +1,1275 @@
+:root {
+  --navy: #231D1F;
+  --navy-2: #2E2628;
+  --paper: #FAF8F3;
+  --paper-dim: #EFEBE2;
+  --ink: #1B2838;
+  --ink-soft: #4A5568;
+  --ink-faint: #A69A94;
+  --vermillion: #A5201D;
+  --vermillion-soft: #E92026;
+  --seafoam: #3E8E7E;
+  --amber: #C68A2E;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-soft: rgba(27, 40, 56, 0.10);
+
+  --status-not-reported: var(--vermillion);
+  --status-not-reported-bg: rgba(165, 32, 29, 0.14);
+  --status-tentative: var(--amber);
+  --status-tentative-bg: rgba(198, 138, 46, 0.14);
+  --status-done: var(--seafoam);
+  --status-done-bg: rgba(62, 142, 126, 0.14);
+  --status-skipped: var(--ink-faint);
+  --status-skipped-bg: rgba(143, 163, 176, 0.14);
+
+  --radius-s: 3px;
+  --radius-m: 4px;
+  --radius-l: 6px;
+  --shadow-card: 0 1px 2px rgba(10, 16, 22, 0.06);
+  --shadow-modal: 0 24px 60px rgba(6, 10, 15, 0.5);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--navy);
+  color: var(--paper);
+  font-family: "Noto Sans JP", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.display {
+  font-family: "Zen Kaku Gothic New", sans-serif;
+}
+
+.mono {
+  font-family: "JetBrains Mono", monospace;
+}
+
+.app-shell {
+  max-width: 480px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Header / brand ---------- */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--navy);
+  border-bottom: 1px solid var(--line);
+  padding: 22px 20px 18px;
+}
+
+.header-nav-row {
+  margin-bottom: 14px;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  font-size: 12.5px;
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: 0.04em;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.back-button:active {
+  color: var(--paper);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.brand .mark {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-l);
+  object-fit: cover;
+  flex-shrink: 0;
+  align-self: center;
+  display: block;
+}
+
+.app-title {
+  margin: 0;
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-weight: 900;
+  font-size: 21px;
+  letter-spacing: 0.02em;
+  color: var(--paper);
+}
+
+.app-subtitle {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.header-date {
+  margin: 3px 0 0;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Auth widget ---------- */
+
+.auth-widget {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 11.5px;
+}
+
+.auth-widget.is-logged-in {
+  justify-content: flex-start;
+}
+
+.auth-status-text {
+  flex: 1;
+  color: var(--ink-faint);
+}
+
+.auth-status-error {
+  color: var(--vermillion-soft);
+}
+
+.auth-avatar {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.auth-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--vermillion-soft);
+  color: var(--paper);
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.auth-name-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.auth-name {
+  color: var(--paper);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.auth-repname-btn {
+  align-self: flex-start;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+
+.auth-login-btn,
+.auth-logout-btn {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--vermillion-soft);
+  background: rgba(233, 32, 38, 0.12);
+  border: 1px solid rgba(233, 32, 38, 0.3);
+  border-radius: var(--radius-s);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.auth-login-btn:disabled {
+  color: var(--ink-faint);
+  background: transparent;
+  border-color: var(--line);
+  cursor: not-allowed;
+}
+
+.auth-logout-btn {
+  color: var(--ink-faint);
+  background: transparent;
+  border-color: var(--line);
+}
+
+/* ---------- Ticker (stat strip) ---------- */
+
+.ticker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.tick {
+  background: var(--navy-2);
+  padding: 11px 12px;
+}
+
+.tick .label {
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+  margin-bottom: 5px;
+}
+
+.tick .val {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--paper);
+}
+
+.tick .val.warn { color: var(--vermillion-soft); }
+.tick .val.good { color: var(--seafoam); }
+
+/* ---------- Top menu ---------- */
+
+.top-menu {
+  flex: 1;
+  padding: 22px 18px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.menu-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--paper);
+  border-radius: var(--radius-l);
+  padding: 17px 16px;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.12s ease;
+}
+
+.menu-card:active {
+  transform: scale(0.98);
+}
+
+.menu-icon {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-m);
+  background: var(--paper-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.menu-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-label {
+  display: block;
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.menu-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.menu-chevron {
+  flex: none;
+  color: var(--vermillion-soft);
+  font-size: 18px;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.app-footer {
+  padding: 22px 20px calc(26px + var(--safe-bottom));
+  text-align: center;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-big {
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--paper);
+}
+
+.date-weekday {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(233, 32, 38, 0.14);
+  color: var(--vermillion-soft);
+  border: 1px solid rgba(233, 32, 38, 0.3);
+}
+
+/* ---------- Section list (schedule) ---------- */
+
+main.content {
+  flex: 1;
+  padding: 18px 16px calc(28px + var(--safe-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0 4px;
+}
+
+/* card = paper surface wrapping rows, mirrors the ledger table card */
+
+.card {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.visit-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.visit-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.visit-row:last-child {
+  border-bottom: none;
+}
+
+.visit-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.visit-main:active {
+  background: var(--paper-dim);
+}
+
+.visit-main:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.visit-time {
+  flex: none;
+  width: 52px;
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.visit-main:disabled .visit-time {
+  color: var(--ink-soft);
+}
+
+.visit-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.visit-name {
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-size: 14.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink);
+}
+
+.visit-meta {
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.future-tag {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+}
+
+.visit-chevron {
+  flex: none;
+  color: var(--vermillion-soft);
+  font-size: 17px;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.visit-delete {
+  flex: none;
+  width: 46px;
+  border: none;
+  border-left: 1px solid var(--line-soft);
+  background: var(--paper);
+  color: var(--vermillion);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.visit-delete:active {
+  background: var(--status-not-reported-bg);
+}
+
+/* status badge -> mirrors the ledger "flag" pill */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  padding: 2px 7px;
+  border-radius: var(--radius-s);
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.badge-not-reported {
+  color: var(--status-not-reported);
+  background: var(--status-not-reported-bg);
+  border-color: rgba(165, 32, 29, 0.35);
+}
+
+.badge-tentative {
+  color: var(--status-tentative);
+  background: var(--status-tentative-bg);
+  border-color: rgba(198, 138, 46, 0.3);
+}
+
+.badge-done {
+  color: var(--status-done);
+  background: var(--status-done-bg);
+  border-color: rgba(62, 142, 126, 0.3);
+}
+
+.badge-skipped {
+  color: var(--status-skipped);
+  background: var(--status-skipped-bg);
+  border-color: rgba(143, 163, 176, 0.3);
+}
+
+/* add walk-in button */
+
+.add-walkin-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 14px;
+  border: 1.5px dashed var(--vermillion-soft);
+  border-radius: var(--radius-l);
+  background: var(--paper);
+  color: var(--vermillion-soft);
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.add-walkin-button:active {
+  background: var(--paper-dim);
+}
+
+.empty-hint {
+  padding: 14px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  background: var(--paper-dim);
+}
+
+.empty-hint .task-link {
+  margin-top: 8px;
+}
+
+/* ---------- History (past nippou) ---------- */
+
+.history-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 1px solid var(--line-soft);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.history-row:active {
+  background: var(--paper-dim);
+}
+
+.history-row:last-child {
+  border-bottom: none;
+}
+
+.history-chevron {
+  flex: none;
+  color: var(--vermillion-soft);
+  font-size: 16px;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.history-date {
+  flex: none;
+  width: 40px;
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.history-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-name {
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* ---------- Upcoming appointments (future preview, read-only) ---------- */
+
+.future-date-heading {
+  padding: 10px 14px 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+}
+
+.future-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.future-row:last-child {
+  border-bottom: none;
+}
+
+.modal-sheet-scroll {
+  max-height: 82vh;
+  overflow-y: auto;
+}
+
+.history-detail-products {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-detail-product {
+  background: var(--paper-dim);
+  border-radius: var(--radius-s);
+  padding: 12px;
+}
+
+.history-detail-product-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.history-detail-name {
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.history-detail-ref {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--ink-faint);
+}
+
+.kv-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+.kv-row:last-child {
+  border-bottom: none;
+}
+
+.kv-row .k {
+  flex: none;
+  color: var(--ink-soft);
+}
+
+/* ---------- Task panel (accordion) ---------- */
+
+.task-panel {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-card);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  animation: expand 0.16s ease;
+}
+
+@keyframes expand {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.task-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.task-panel-title {
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.task-panel-close {
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 17px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius-s);
+  background: var(--paper-dim);
+  border-left: 3px solid var(--line-soft);
+}
+
+.task-item.is-done {
+  border-left-color: var(--seafoam);
+}
+
+.task-item.is-locked {
+  opacity: 0.5;
+}
+
+.task-check {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  border: 2px solid var(--line-soft);
+  color: transparent;
+  background: var(--paper);
+}
+
+.task-item.is-done .task-check {
+  background: var(--seafoam);
+  border-color: var(--seafoam);
+  color: var(--paper);
+}
+
+.task-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-label {
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.task-sub {
+  margin-top: 1px;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.task-link {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--vermillion-soft);
+  background: rgba(193, 68, 14, 0.12);
+  border: 1px solid rgba(193, 68, 14, 0.28);
+  border-radius: var(--radius-s);
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.task-link:disabled {
+  color: var(--ink-soft);
+  background: transparent;
+  border-color: var(--line-soft);
+  cursor: not-allowed;
+}
+
+.needs-editor {
+  background: var(--paper-dim);
+  border-radius: var(--radius-s);
+  padding: 12px;
+  margin: -3px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: expand 0.16s ease;
+}
+
+.needs-editor .field-group textarea {
+  background: var(--paper);
+  min-height: 72px;
+}
+
+/* ---------- Modal / sheet ---------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 16, 22, 0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  padding: 0;
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: var(--radius-l) var(--radius-l) 0 0;
+  padding: 20px 20px calc(22px + var(--safe-bottom));
+  box-shadow: var(--shadow-modal);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: sheet-up 0.18s ease;
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-title {
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-size: 15.5px;
+  font-weight: 700;
+}
+
+.modal-field label {
+  display: block;
+  font-size: 11.5px;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+.modal-field input[type="text"],
+.modal-field select {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line-soft);
+  font-size: 15px;
+  font-family: inherit;
+  background: var(--paper-dim);
+  color: var(--ink);
+}
+
+.modal-field input[type="text"]:focus,
+.modal-field select:focus {
+  outline: 2px solid var(--vermillion-soft);
+  outline-offset: -1px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  flex: 1;
+  padding: 13px;
+  border-radius: var(--radius-s);
+  border: none;
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--vermillion-soft);
+  color: var(--paper);
+}
+
+.btn-primary:active {
+  background: var(--vermillion);
+}
+
+.btn-secondary {
+  background: var(--paper-dim);
+  color: var(--ink);
+  border: 1px solid var(--line-soft);
+}
+
+.btn-danger {
+  background: var(--vermillion);
+  color: var(--paper);
+}
+
+.modal-text {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + var(--safe-bottom));
+  transform: translateX(-50%) translateY(8px);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 12.5px;
+  padding: 11px 18px;
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-modal);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  max-width: 88%;
+  text-align: center;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---------- Tabs (shared by ledger + future tabbed views) ---------- */
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 18px 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.tab {
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--ink-faint);
+  border-bottom: 2px solid transparent;
+  font-family: "Zen Kaku Gothic New", sans-serif;
+}
+
+.tab.active {
+  color: var(--paper);
+  border-bottom-color: var(--vermillion-soft);
+}
+
+/* ---------- Stub page ---------- */
+
+.stub-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.stub-icon {
+  font-size: 36px;
+}
+
+.stub-title {
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--paper);
+}
+
+.stub-desc {
+  font-size: 13px;
+  line-height: 1.7;
+  max-width: 320px;
+  color: var(--ink-faint);
+}
+
+/* ---------- Nippou (daily report) ---------- */
+
+main.content.has-submit-bar {
+  padding-bottom: calc(96px + var(--safe-bottom));
+}
+
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.product-item {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.product-header {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+}
+
+.product-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.product-remove {
+  flex: none;
+  padding: 0 14px;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--line-soft);
+  color: var(--vermillion);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.product-name-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.product-ref {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  color: var(--ink-faint);
+}
+
+.product-name {
+  min-width: 0;
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-chevron {
+  flex: none;
+  color: var(--ink-soft);
+  font-size: 16px;
+  transition: transform 0.15s ease;
+}
+
+.product-item.is-open .product-chevron {
+  transform: rotate(90deg);
+}
+
+.product-body {
+  display: none;
+  padding: 0 14px 16px;
+  flex-direction: column;
+  gap: 14px;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 14px;
+}
+
+.product-item.is-open .product-body {
+  display: flex;
+}
+
+.field-group label {
+  display: block;
+  font-size: 11.5px;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+.range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.range-inputs input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line-soft);
+  background: var(--paper-dim);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.range-inputs input:focus {
+  outline: 2px solid var(--vermillion-soft);
+  outline-offset: -1px;
+}
+
+.range-sep {
+  flex: none;
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+.field-group textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 10px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line-soft);
+  background: var(--paper-dim);
+  color: var(--ink);
+  font-size: 13.5px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.field-group textarea:focus {
+  outline: 2px solid var(--vermillion-soft);
+  outline-offset: -1px;
+}
+
+.rank-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.rank-chip {
+  flex: 1;
+  padding: 10px 0;
+  text-align: center;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line-soft);
+  background: var(--paper-dim);
+  color: var(--ink);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rank-chip.is-selected {
+  background: var(--vermillion-soft);
+  border-color: var(--vermillion-soft);
+  color: #fff;
+}
+
+.rank-required-hint {
+  font-size: 11px;
+  color: var(--vermillion-soft);
+}
+
+.submit-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--navy);
+  border-top: 1px solid var(--line);
+  padding: 12px 16px calc(14px + var(--safe-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.submit-hint {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+.submit-hint.is-warning {
+  color: var(--vermillion-soft);
+}

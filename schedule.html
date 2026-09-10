@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>本日の予定 | 鮮度台帳</title>
+<meta name="theme-color" content="#231D1F">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="header-nav-row">
+      <a class="back-button" href="index.html">‹ 戻る</a>
+    </div>
+    <div class="brand">
+      <div>
+        <h1 class="app-title">本日の予定</h1>
+        <p class="header-date" data-today></p>
+      </div>
+    </div>
+    <div class="ticker" id="ticker"></div>
+  </header>
+
+  <main class="content">
+    <section class="section-block">
+      <div class="section-title"><span>アポイントメント</span></div>
+      <div class="card visit-list" id="appointment-list"></div>
+    </section>
+
+    <div id="task-panel-slot"></div>
+
+    <section class="section-block">
+      <div class="section-title"><span>Walk In</span></div>
+      <div class="card visit-list" id="walkin-list"></div>
+      <button class="add-walkin-button" id="add-walkin-btn" type="button">
+        <span aria-hidden="true">＋</span> Walk In を追加
+      </button>
+    </section>
+
+    <section class="section-block">
+      <div class="section-title"><span>今後の予定(1週間)</span></div>
+      <div class="card" id="future-list"></div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-title"><span>過去の日報</span></div>
+      <div class="card" id="history-list"></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-overlay" id="walkin-modal" hidden>
+  <div class="modal-sheet">
+    <div class="modal-title">Walk In 訪問を追加</div>
+    <p class="modal-text">アポ紐付けなしの訪問です。追加後、タスク①の「到着確認」ボタンを押すと位置情報・時刻が記録されます。</p>
+    <div class="modal-field">
+      <label for="walkin-name-input">店舗名(任意・自由入力)</label>
+      <input type="text" id="walkin-name-input" placeholder="例: 未登録の店舗" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="walkin-cancel-btn" type="button">キャンセル</button>
+      <button class="btn btn-primary" id="walkin-confirm-btn" type="button">追加する</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="delete-modal" hidden>
+  <div class="modal-sheet">
+    <div class="modal-title">この予定を削除しますか？</div>
+    <p class="modal-text" id="delete-modal-text"></p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="delete-cancel-btn" type="button">キャンセル</button>
+      <button class="btn btn-danger" id="delete-confirm-btn" type="button">削除する</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="history-detail-modal" hidden>
+  <div class="modal-sheet modal-sheet-scroll">
+    <div class="modal-title" id="history-detail-title"></div>
+    <p class="modal-text" id="history-detail-subtitle"></p>
+    <div class="history-detail-products" id="history-detail-products"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="history-detail-close-btn" type="button">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="js/auth-config.js"></script>
+<script src="js/rep-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/google-api.js"></script>
+<script src="js/product-source.js"></script>
+<script src="js/analysis-log.js"></script>
+<script src="js/app.js"></script>
+<script src="js/schedule.js"></script>
+</body>
+</html>

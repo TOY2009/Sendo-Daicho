@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>鮮度台帳 — 営業管理ダッシュボード</title>
+<meta name="description" content="課ごとの商談・フォロー状況を確認する鮮度台帳ダッシュボード">
+<meta name="theme-color" content="#231D1F">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/ledger.css">
+</head>
+<body>
+
+<header class="ledger-header">
+  <div class="header-nav-row">
+    <a class="back-button" href="index.html">‹ 戻る</a>
+  </div>
+  <div class="brand">
+    <img class="mark" src="icons/icon-192.png" alt="THAI OOI YAMAMOTO">
+    <div>
+      <h1 class="app-title">鮮度台帳</h1>
+      <div class="app-subtitle mono">SALES CONTINUITY LEDGER — Thai Ooiyamamoto</div>
+    </div>
+  </div>
+  <div class="ticker" id="ticker">
+    <div class="tick">
+      <div class="label">取引先数(トラッキング中)</div>
+      <div class="val" id="tick-total">—</div>
+    </div>
+    <div class="tick">
+      <div class="label">フォロー要(15日以上未接触)</div>
+      <div class="val" id="tick-follow">—</div>
+    </div>
+    <div class="tick">
+      <div class="label">発注減少アラート</div>
+      <div class="val" id="tick-decline">—</div>
+    </div>
+    <div class="tick">
+      <div class="label">引継ぎ客</div>
+      <div class="val" id="tick-handover">—</div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="tab active" data-tab="main">取引先鮮度一覧</div>
+  <div class="tab" data-tab="reps">担当者別サマリー</div>
+  <div class="tab" data-tab="handover">引継ぎ客</div>
+</nav>
+
+<main class="ledger-main">
+
+  <!-- MAIN PANEL -->
+  <div class="panel active" id="panel-main">
+    <div class="legend">
+      <span class="item"><span class="dot" style="background:var(--seafoam);"></span> 新鮮(7日以内接触)</span>
+      <span class="item"><span class="dot" style="background:var(--amber);"></span> やや停滞(8〜14日)</span>
+      <span class="item"><span class="dot" style="background:var(--vermillion);"></span> 要フォロー(15日以上)</span>
+      <span style="margin-left:auto; font-size:11px; color:var(--ink-faint);">行をクリックで詳細</span>
+    </div>
+    <div class="card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>取引先</th><th>担当</th><th>鮮度(最終接触)</th><th>発注推移(6ヶ月)</th><th>先月比</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="client-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPS PANEL -->
+  <div class="panel" id="panel-reps">
+    <div class="rep-grid" id="rep-cards"></div>
+  </div>
+
+  <!-- HANDOVER PANEL -->
+  <div class="panel" id="panel-handover">
+    <div class="card">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>取引先</th><th>旧担当</th><th>新担当</th><th>引継ぎ日</th><th>引継ぎ後の発注</th><th>状態</th></tr></thead>
+          <tbody id="handover-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="modal-backdrop" id="modal">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="js/auth-config.js"></script>
+<script src="js/rep-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/google-api.js"></script>
+<script src="js/product-source.js"></script>
+<script src="js/analysis-log.js"></script>
+<script src="js/app.js"></script>
+<script src="js/ledger.js"></script>
+</body>
+</html>

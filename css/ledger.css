@@ -1,0 +1,360 @@
+/* Ledger dashboard — page-specific rules layered on top of css/style.css tokens */
+
+.ledger-header {
+  padding: 22px 36px 20px;
+  border-bottom: 1px solid var(--line);
+  position: static;
+}
+
+.ledger-header .brand {
+  margin-bottom: 20px;
+}
+
+.ledger-header .ticker {
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 0;
+}
+
+.tabs {
+  padding: 18px 36px 0;
+}
+
+.ledger-main {
+  padding: 22px 36px 60px;
+}
+
+.panel {
+  display: none;
+}
+
+.panel.active {
+  display: block;
+}
+
+/* ---- Legend ---- */
+
+.legend {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 12px;
+  color: var(--ink-faint);
+  flex-wrap: wrap;
+}
+
+.legend .item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ---- Table ---- */
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+}
+
+thead th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  font-weight: 500;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--paper-dim);
+  position: sticky;
+  top: 0;
+}
+
+tbody td {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+tbody tr:hover {
+  background: #F2EEE4;
+  cursor: pointer;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.client-name {
+  font-weight: 700;
+  font-family: "Zen Kaku Gothic New", sans-serif;
+}
+
+.client-type {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+.owner {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+}
+
+.team-tag {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-family: "JetBrains Mono", monospace;
+  background: var(--ink);
+  color: var(--paper);
+  display: inline-block;
+}
+
+/* freshness gauge */
+
+.gauge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gauge {
+  width: 64px;
+  height: 8px;
+  border-radius: 4px;
+  background: #E4DFD2;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.gauge .fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.gauge-days {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.trend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trend svg {
+  display: block;
+}
+
+.trend .amt {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+}
+
+.trend .amt.down { color: var(--vermillion); }
+.trend .amt.up { color: var(--seafoam); }
+
+.flag {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 2px;
+  font-family: "JetBrains Mono", monospace;
+  background: rgba(165, 32, 29, 0.14);
+  color: var(--vermillion);
+  border: 1px solid rgba(165, 32, 29, 0.35);
+  white-space: nowrap;
+}
+
+/* ---- Rep summary cards ---- */
+
+.rep-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.rep-grid .empty-hint {
+  grid-column: 1 / -1;
+}
+
+.rep-card {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: var(--radius-l);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.rep-card .name {
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.rep-card .team {
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-family: "JetBrains Mono", monospace;
+  margin-bottom: 14px;
+}
+
+.rep-stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-top: 1px solid var(--line-soft);
+  font-size: 12px;
+}
+
+.rep-stat .v {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+}
+
+/* ---- Detail modal ---- */
+
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 16, 22, 0.72);
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  z-index: 50;
+  overflow-y: auto;
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.modal-backdrop .modal {
+  background: var(--paper);
+  color: var(--ink);
+  width: 100%;
+  max-width: 720px;
+  border-radius: var(--radius-l);
+  padding: 30px 34px 34px;
+  box-shadow: var(--shadow-modal);
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+
+.modal-head h2 {
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.modal-head .type {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.close {
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--ink-soft);
+  line-height: 1;
+}
+
+.section-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  font-family: "JetBrains Mono", monospace;
+  margin: 22px 0 10px;
+  text-transform: uppercase;
+}
+
+.section-label:first-of-type {
+  margin-top: 0;
+}
+
+.kv-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 13px;
+}
+
+.kv-row .k {
+  color: var(--ink-soft);
+}
+
+.reco {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--paper-dim);
+  border-radius: var(--radius-s);
+  margin-bottom: 8px;
+  font-size: 13px;
+  align-items: flex-start;
+}
+
+.reco .badge {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.badge.ai { background: rgba(62, 142, 126, 0.15); color: var(--seafoam); }
+.badge.own { background: rgba(198, 138, 46, 0.18); color: var(--amber); }
+
+.visit-log {
+  font-size: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line-soft);
+  display: flex;
+  gap: 12px;
+}
+
+.visit-log .d {
+  font-family: "JetBrains Mono", monospace;
+  color: var(--ink-soft);
+  width: 78px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+  .rep-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .ledger-header,
+  .tabs,
+  .ledger-main {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .ledger-header .ticker {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
