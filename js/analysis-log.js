@@ -64,21 +64,22 @@
 
   // Analysisシートの列構成は今後も変わりうる(実際に列の挿入・並び替えが発生した)ため、
   // 固定の列アルファベットに頼らず、見出し行(1行目)のラベル文字列で列位置を都度検出する。
+  // シート側の見出しが日本語→英語に変更されたことがあるため、両方受け付ける
   var COLUMN_LABELS = {
-    dateTime: ["日時"],
-    venue: ["訪問先"],
+    dateTime: ["日時", "date/time"],
+    venue: ["訪問先", "customername"],
     itemCode: ["itemcode"],
     name: ["offerproduct"],
-    stockMin: ["仕入れ額min"],
-    stockMax: ["仕入れ額max"],
-    usageMin: ["使用量min"],
-    usageMax: ["使用量max"],
+    stockMin: ["仕入れ額min", "purchasepricemin"],
+    stockMax: ["仕入れ額max", "purchasepricemax"],
+    usageMin: ["使用量min", "usagemin"],
+    usageMax: ["使用量max", "usagemax"],
     priceMin: ["targetpricemin"],
     priceMax: ["targetpricemax"],
     remarks: ["remarks"],
-    type: ["種別"],
-    rank: ["ランク"],
-    needs: ["新規ニーズ"]
+    type: ["種別", "type"],
+    rank: ["ランク", "rank"],
+    needs: ["新規ニーズ", "newneeds"]
   };
 
   var cachedColumns = null; // { fileId, map: {field: colIndex} }

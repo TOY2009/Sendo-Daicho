@@ -1,6 +1,6 @@
 "use strict";
 
-var CACHE_NAME = "sendo-daichou-v39";
+var CACHE_NAME = "sendo-daichou-v40";
 var PRECACHE_URLS = [
   "./",
   "./index.html",
