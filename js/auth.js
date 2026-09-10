@@ -192,37 +192,13 @@
       var avatar = profile.picture
         ? '<img class="auth-avatar" id="auth-avatar-img" src="' + escapeHtml(profile.picture) + '" alt="">'
         : '<span class="auth-avatar auth-avatar-fallback">' + escapeHtml((profile.name || "?").charAt(0)) + '</span>';
-      var repName = (window.SENDO_REP_CONFIG && window.SENDO_REP_CONFIG.getRepName) ? window.SENDO_REP_CONFIG.getRepName() : "";
-      var repNameLabel = tr("auth.repNamePrefix", "担当者名: ") + (repName || tr("auth.repNameUnset", "未設定"));
       return avatar +
-        '<span class="auth-name-wrap">' +
-          '<span class="auth-name">' + escapeHtml(profile.name) + '</span>' +
-          '<button class="auth-repname-btn" type="button" id="auth-repname-btn">' + escapeHtml(repNameLabel) + ' ✎</button>' +
-        '</span>' +
+        '<span class="auth-name">' + escapeHtml(profile.name) + '</span>' +
         '<button class="auth-logout-btn" type="button" id="auth-logout-btn">' + escapeHtml(tr("auth.logoutBtn", "ログアウト")) + '</button>';
     }
     // logged-out
     return '<span class="auth-status-text">' + escapeHtml(tr("auth.loginPrompt", "Googleアカウントでログインしてください")) + '</span>' +
       '<button class="auth-login-btn" type="button" id="auth-login-btn">' + escapeHtml(tr("auth.loginBtn", "Googleでログイン")) + '</button>';
-  }
-
-  // Hearing Sheetのフォルダ名・{担当者名}_App_Analysisのファイル名とGoogleアカウントの
-  // 表示名が一致しない場合に、この端末だけの上書き設定をしてもらうためのプロンプト
-  function promptRepNameOverride() {
-    var current = (window.SENDO_REP_CONFIG && window.SENDO_REP_CONFIG.getRepName) ? window.SENDO_REP_CONFIG.getRepName() : "";
-    var input = window.prompt(
-      tr("auth.repNamePromptTitle",
-        "担当者名を入力してください。\n" +
-        "Hearing Sheetのフォルダ名・{担当者名}_App_Analysisのファイル名と、\n" +
-        "一字一句(全角半角・スペースまで)完全に一致させてください。\n" +
-        "例: Nine (Pacharach Phanyapornsuk)"),
-      current
-    );
-    if (input === null) return; // キャンセル
-    if (window.SENDO_REP_CONFIG && window.SENDO_REP_CONFIG.setOverride) {
-      window.SENDO_REP_CONFIG.setOverride(input);
-    }
-    location.reload();
   }
 
   function render() {
@@ -243,9 +219,6 @@
 
     var logoutBtn = widget.querySelector("#auth-logout-btn");
     if (logoutBtn) logoutBtn.addEventListener("click", logout);
-
-    var repNameBtn = widget.querySelector("#auth-repname-btn");
-    if (repNameBtn) repNameBtn.addEventListener("click", promptRepNameOverride);
 
     var avatarImg = widget.querySelector("#auth-avatar-img");
     if (avatarImg) {

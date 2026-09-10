@@ -32,12 +32,6 @@
       loginPrompt: { ja: "Googleアカウントでログインしてください", en: "Please log in with your Google account" },
       loginBtn: { ja: "Googleでログイン", en: "Sign in with Google" },
       logoutBtn: { ja: "ログアウト", en: "Log out" },
-      repNamePrefix: { ja: "担当者名: ", en: "Rep: " },
-      repNameUnset: { ja: "未設定", en: "not set" },
-      repNamePromptTitle: {
-        ja: "担当者名を入力してください。\nHearing Sheetのフォルダ名・{担当者名}_App_Analysisのファイル名と、\n一字一句(全角半角・スペースまで)完全に一致させてください。\n例: Nine (Pacharach Phanyapornsuk)",
-        en: "Enter your rep name.\nIt must match your Hearing Sheet folder name and\n{repName}_App_Analysis file name exactly (spacing included).\nExample: Nine (Pacharach Phanyapornsuk)"
-      },
       unconfiguredError: { ja: "初期化に失敗しました。再読み込みしてください。", en: "Failed to initialize. Please reload the page." },
       offlineError: { ja: "読み込みに失敗しました(オフラインの可能性があります)。再読み込みしてください。", en: "Failed to load (you may be offline). Please reload the page." },
       deniedError: { ja: "ログインに失敗しました(同意が拒否されたか、ポップアップがブロックされました)", en: "Sign-in failed (consent was declined or the popup was blocked)" }
