@@ -389,21 +389,39 @@
   // HSダウンロード時に事前作成した行)から直接取得する。Hearing Sheetは複数コピーが
   // 作られたり空欄のまま放置されたりして日報側から見て不安定なため、GAS・アプリの両方が
   // 常に読み書きしているAnalysisシートを単一の情報源として使う。
+  function collectCandidateRows(rows, cols, matcher) {
+    var candidates = [];
+    var resolvedDateTimeStr = null;
+    for (var i = 0; i < rows.length; i++) {
+      if (!matcher(rows[i])) continue;
+      var name = cellValue(rows[i], cols.name);
+      if (!name) continue;
+      if (!resolvedDateTimeStr) resolvedDateTimeStr = cellValue(rows[i], cols.dateTime);
+      candidates.push({ itemCode: cellValue(rows[i], cols.itemCode), name: name });
+    }
+    return { dateTimeStr: resolvedDateTimeStr, candidates: candidates };
+  }
+
   // params: { dateTimeStr, venue }
+  // 戻り値: { dateTimeStr, candidates }。dateTimeStrは実際にマッチした行の値(呼び出し元の
+  // paramsと食い違う可能性があるため、日報提出時はこちらを使う)。
   function getVisitCandidates(params) {
     return getAnalysisFile().then(function (file) {
       return getColumnMap(file).then(function (cols) {
         return ProductSource.getSheetValues(file.fileId, file.sheetTitle, VALUES_RANGE).then(function (rows) {
-          var candidates = [];
-          for (var i = 0; i < rows.length; i++) {
-            if (cellEquals(rows[i], cols.dateTime, params.dateTimeStr) && cellEquals(rows[i], cols.venue, params.venue)) {
-              var itemCode = cellValue(rows[i], cols.itemCode);
-              var name = cellValue(rows[i], cols.name);
-              if (!name) continue;
-              candidates.push({ itemCode: itemCode, name: name });
-            }
-          }
-          return candidates;
+          var exact = collectCandidateRows(rows, cols, function (row) {
+            return cellEquals(row, cols.dateTime, params.dateTimeStr) && cellEquals(row, cols.venue, params.venue);
+          });
+          if (exact.candidates.length > 0) return exact;
+
+          // カレンダーの予定時刻とAnalysis側に記録された時刻が、GAS側の生成タイミングの
+          // ズレで数分〜数時間食い違うことがある(実例あり)。日時完全一致で見つからない場合は
+          // 「同じ日・同じ訪問先」まで条件を緩めて候補を探す。
+          var dayPrefix = (params.dateTimeStr || "").split(" ")[0]; // "M/D/YYYY"部分
+          if (!dayPrefix) return exact;
+          return collectCandidateRows(rows, cols, function (row) {
+            return cellValue(row, cols.dateTime).split(" ")[0] === dayPrefix && cellEquals(row, cols.venue, params.venue);
+          });
         });
       });
     });

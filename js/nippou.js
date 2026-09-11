@@ -99,10 +99,10 @@
     return false;
   }
 
-  function finalizeNewRecord(candidateStatus, products, candidateDebug) {
+  function finalizeNewRecord(candidateStatus, products, candidateDebug, resolvedDateTimeStr) {
     record = {
       name: visitName, visitId: visitId, visitStart: visitStart, products: products,
-      submitted: false, submittedAt: null,
+      submitted: false, submittedAt: null, resolvedDateTimeStr: resolvedDateTimeStr || null,
       candidateStatus: candidateStatus, candidateDebug: candidateDebug || null
     };
     store[visitId] = record;
@@ -138,7 +138,8 @@
   }
 
   function fetchVisitCandidatesWithRetry(attempt, dateTimeStr) {
-    return AnalysisLog.getVisitCandidates({ dateTimeStr: dateTimeStr, venue: visitName }).then(function (candidates) {
+    return AnalysisLog.getVisitCandidates({ dateTimeStr: dateTimeStr, venue: visitName }).then(function (result) {
+      var candidates = result.candidates;
       var isEmpty = candidates.length === 0;
       if (isEmpty && attempt < CANDIDATE_RETRY_DELAYS_MS.length) {
         return new Promise(function (resolve) {
@@ -149,7 +150,10 @@
       }
       if (isEmpty) return { status: "unmatched", debug: { dateTimeStr: dateTimeStr, venue: visitName } };
       return resolveUnitsByItemCode(candidates).then(function (resolved) {
-        return { status: "matched", products: resolved, debug: { dateTimeStr: dateTimeStr, venue: visitName, count: resolved.length } };
+        return {
+          status: "matched", products: resolved, resolvedDateTimeStr: result.dateTimeStr,
+          debug: { dateTimeStr: dateTimeStr, venue: visitName, count: resolved.length }
+        };
       });
     });
   }
@@ -184,7 +188,7 @@
         var products = result.products.map(function (p) {
           return emptyProduct(p.name, { itemCode: p.itemCode, unit: p.unit });
         });
-        finalizeNewRecord("matched", products, result.debug);
+        finalizeNewRecord("matched", products, result.debug, result.resolvedDateTimeStr);
       } else {
         finalizeNewRecord("unmatched", [], result.debug);
       }
@@ -522,7 +526,11 @@
     els.submitBtn.disabled = true;
     els.submitBtn.textContent = t("nippou.submitBtnWriting");
 
-    var dateTimeStr = visitStart && window.AnalysisLog ? AnalysisLog.formatAnalysisDateTime(new Date(visitStart)) : null;
+    // 候補取得時にAnalysisシート側の実際の日時("SMS TUNA"のような数分〜数時間のズレの
+    // ケースあり)で見つけていた場合は、提出もその実際の値に合わせる(でないと更新ではなく
+    // 新規行が追加されてしまい、GASが作った候補行が空欄のまま残ってしまう)
+    var dateTimeStr = record.resolvedDateTimeStr ||
+      (visitStart && window.AnalysisLog ? AnalysisLog.formatAnalysisDateTime(new Date(visitStart)) : null);
     var writePromise = (window.AnalysisLog && dateTimeStr)
       ? AnalysisLog.logNippouSubmission({
           dateTimeStr: dateTimeStr,
