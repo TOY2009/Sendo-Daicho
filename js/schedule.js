@@ -544,51 +544,23 @@
     });
   }
 
-  // ---- 未提出の日報(日をまたいだ未提出分をここでまとめて拾う) ----
+  // ---- 未提出の日報(localStorageに頼らず、Analysisシート本体だけを正とする) ----
 
-  function collectPendingNippou() {
-    var todayK = todayKey();
-    var entries = [];
-    try {
-      for (var i = 0; i < localStorage.length; i++) {
-        var key = localStorage.key(i);
-        if (!key || key.indexOf(NIPPOU_STORAGE_PREFIX) !== 0) continue;
-        var dateKey = key.slice(NIPPOU_STORAGE_PREFIX.length);
-        if (dateKey === todayK) continue; // 本日分は上のタスク欄に出ているので除く
+  var pendingEntries = [];
 
-        var raw = localStorage.getItem(key);
-        if (!raw) continue;
-        var store;
-        try { store = JSON.parse(raw); } catch (e) { continue; }
-
-        Object.keys(store).forEach(function (visitIdKey) {
-          var record = store[visitIdKey];
-          if (record && !record.submitted) {
-            entries.push({
-              dateKey: dateKey,
-              visitId: record.visitId || visitIdKey,
-              name: record.name,
-              visitStart: record.visitStart || ""
-            });
-          }
-        });
-      }
-    } catch (e) {
-      console.warn("failed to collect pending nippou", e);
-    }
-
-    entries.sort(function (a, b) { return (b.visitStart || b.dateKey).localeCompare(a.visitStart || a.dateKey); });
-    return entries;
+  // localStorage側の記録は端末のキャッシュ操作で簡単に消えてしまうため、正としては使わない。
+  // Analysisシート上でランク未記入の候補行が残っている訪問=未提出、として都度シートから判定する。
+  function visitIdForPending(e) {
+    return "sheet-" + (e.visitStart || e.dateKey) + "-" + e.name;
   }
 
-  function renderPending() {
+  function paintPending() {
     if (!els.pendingList) return;
-    var entries = collectPendingNippou();
-    if (entries.length === 0) {
+    if (pendingEntries.length === 0) {
       els.pendingList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("schedule.noPending")) + '</div>';
       return;
     }
-    els.pendingList.innerHTML = entries.map(function (e, i) {
+    els.pendingList.innerHTML = pendingEntries.map(function (e, i) {
       return '<button type="button" class="history-row" data-pending-index="' + i + '">' +
         '<span class="history-date">' + escapeHtml(formatHistoryDate(e.dateKey)) + '</span>' +
         '<span class="history-info">' +
@@ -600,11 +572,24 @@
 
     els.pendingList.querySelectorAll("[data-pending-index]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var e = entries[Number(btn.getAttribute("data-pending-index"))];
-        window.location.href = "nippou.html?visit=" + encodeURIComponent(e.visitId) +
+        var e = pendingEntries[Number(btn.getAttribute("data-pending-index"))];
+        window.location.href = "nippou.html?visit=" + encodeURIComponent(visitIdForPending(e)) +
           "&name=" + encodeURIComponent(e.name) +
           "&start=" + encodeURIComponent(e.visitStart || "");
       });
+    });
+  }
+
+  function renderPending() {
+    if (!els.pendingList || !window.AnalysisLog || !window.Auth || !Auth.isLoggedIn()) return;
+    var todayK = todayKey();
+    AnalysisLog.getPendingVisits().then(function (visits) {
+      pendingEntries = visits
+        .filter(function (v) { return v.dateKey !== todayK; }) // 本日分は上のタスク欄に出ているので除く
+        .sort(function (a, b) { return (b.visitStart || b.dateKey).localeCompare(a.visitStart || a.dateKey); });
+      paintPending();
+    }).catch(function (err) {
+      console.warn("failed to load pending visits from Analysis sheet", err);
     });
   }
 
@@ -1181,6 +1166,7 @@
   refreshHistoryFromSheet();
   if (window.Auth) Auth.onChange(syncCalendar);
   if (window.Auth) Auth.onChange(refreshHistoryFromSheet);
+  if (window.Auth) Auth.onChange(renderPending);
   setInterval(render, 30000);
 
   flushLocationQueue();

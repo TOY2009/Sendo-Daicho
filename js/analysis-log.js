@@ -450,6 +450,46 @@
     });
   }
 
+  // 未提出の訪問も、localStorageではなくAnalysisシート本体だけを正とする。
+  // GASがHSダウンロード時に候補行(Item Code・Offer Product)を事前に作るので、
+  // その行群の中にランク未記入のものが1つでもあれば「まだ日報が完了していない」とみなす。
+  // (Walk Inのようにシートへ一切書き込まれていない訪問はそもそも検出対象に出来ない)
+  function getPendingVisits() {
+    return getAnalysisFile().then(function (file) {
+      return getColumnMap(file).then(function (cols) {
+        if (cols.dateTime == null || cols.venue == null) return [];
+        return ProductSource.getSheetValues(file.fileId, file.sheetTitle, VALUES_RANGE).then(function (rows) {
+          var byVisit = {};
+          var order = [];
+          rows.forEach(function (row) {
+            var dateTimeStr = cellValue(row, cols.dateTime);
+            var venue = cellValue(row, cols.venue);
+            var name = cellValue(row, cols.name);
+            if (!dateTimeStr || !venue || !name) return;
+            var rank = cols.rank != null ? cellValue(row, cols.rank) : "";
+            var key = dateTimeStr + "|" + venue;
+            if (!byVisit[key]) {
+              byVisit[key] = { dateTimeStr: dateTimeStr, venue: venue, hasUnranked: false };
+              order.push(key);
+            }
+            if (!rank) byVisit[key].hasUnranked = true;
+          });
+          return order
+            .map(function (key) { return byVisit[key]; })
+            .filter(function (v) { return v.hasUnranked; })
+            .map(function (v) {
+              var visitDate = parseAnalysisDateTime(v.dateTimeStr);
+              return {
+                dateKey: visitDate ? dayKeyFromDate(visitDate) : "",
+                name: v.venue,
+                visitStart: visitDate ? visitDate.toISOString() : ""
+              };
+            });
+        });
+      });
+    });
+  }
+
   window.AnalysisLog = {
     formatAnalysisDateTime: formatAnalysisDateTime,
     parseAnalysisDateTime: parseAnalysisDateTime,
@@ -462,6 +502,7 @@
     getAllRows: getAllRows,
     getVisitCandidates: getVisitCandidates,
     getSubmittedHistory: getSubmittedHistory,
+    getPendingVisits: getPendingVisits,
     logLocationRealtime: logLocationRealtime
   };
 })();
