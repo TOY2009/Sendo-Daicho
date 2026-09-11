@@ -158,6 +158,10 @@
       selectProductLabel: { ja: "商品を選択", en: "Select product" },
       pageTitleSuffix: { ja: " の日報", en: " Report" },
       loadFailed: { ja: "候補商品の取得に失敗しました", en: "Failed to load candidate products" },
+      permissionDenied: {
+        ja: "Googleアカウントの権限が不足しています。一度ログアウトし、再ログイン時に表示される許可を全てチェックしてログインし直してください",
+        en: "Missing Google account permissions. Please log out and log back in, checking every permission on the consent screen"
+      },
       loadingCandidates: { ja: "候補商品を読み込み中…", en: "Loading candidate products…" },
       notFound: { ja: "対応するHearing Sheetが見つかりませんでした", en: "No matching Hearing Sheet was found" },
       notFoundHint: { ja: "HSダウンロード直後は反映まで数秒〜数十秒かかることがあります", en: "It can take up to several tens of seconds to show up right after HS download" },

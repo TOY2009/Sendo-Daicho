@@ -84,6 +84,7 @@
   var store = loadStore();
   var record = store[visitId] || null;
   var loadStatus = record ? "ready" : "loading"; // loading | ready | error
+  var loadErrorType = null; // "error"時、原因がGoogle側の権限不足(forbidden)かどうかを覚えておく
   var openIndex = -1;
 
   function recalcOpenIndex() {
@@ -195,6 +196,7 @@
     }).catch(function (err) {
       console.warn("visit candidate fetch failed", err);
       loadStatus = "error";
+      loadErrorType = err && err.type;
       render();
     });
   }
@@ -316,8 +318,9 @@
 
     if (!record) {
       if (loadStatus === "error") {
+        var errorMsg = loadErrorType === "forbidden" ? t("nippou.permissionDenied") : t("nippou.loadFailed");
         els.productList.innerHTML =
-          '<div class="empty-hint">' + escapeHtml(t("nippou.loadFailed")) + '<br>' +
+          '<div class="empty-hint">' + escapeHtml(errorMsg) + '<br>' +
           '<button class="task-link" type="button" id="candidates-retry-btn">' + escapeHtml(t("common.retry")) + '</button></div>';
         bindCandidatesRetryButton();
       } else {
