@@ -165,6 +165,8 @@
       loadingCandidates: { ja: "候補商品を読み込み中…", en: "Loading candidate products…" },
       notFound: { ja: "対応するHearing Sheetが見つかりませんでした", en: "No matching Hearing Sheet was found" },
       notFoundHint: { ja: "HSダウンロード直後は反映まで数秒〜数十秒かかることがあります", en: "It can take up to several tens of seconds to show up right after HS download" },
+      pendingPickerLoading: { ja: "他の未提出の訪問を確認中…", en: "Checking other unsubmitted visits…" },
+      pendingPickerTitle: { ja: "本日の未提出な訪問から選ぶ", en: "Or pick from today's unsubmitted visits" },
       noCandidates: { ja: "候補商品がありません", en: "No candidate products" },
       noCandidatesHint: {
         ja: "評価ログの該当行に商品名が入っていない可能性があります",

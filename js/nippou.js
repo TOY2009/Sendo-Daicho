@@ -112,6 +112,62 @@
     recalcOpenIndex();
     loadStatus = "ready";
     render();
+    if (candidateStatus === "unmatched") loadPendingPicker();
+  }
+
+  // 自動照合(日時+訪問先)で見つからない場合の最終手段: カレンダー予定名を信用するのをやめ、
+  // Analysisシート本体にある「その日の未提出な訪問」を一覧で見せて、本人に選んでもらう。
+  var pendingPicker = { loading: false, options: [] };
+
+  function formatPickerTime(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+
+  function loadPendingPicker() {
+    if (!window.AnalysisLog || isWalkin) return;
+    pendingPicker.loading = true;
+    render();
+    var dayK = dayKeyFromDate(visitStart ? new Date(visitStart) : new Date());
+    AnalysisLog.getPendingVisits().then(function (visits) {
+      pendingPicker.options = visits.filter(function (v) { return v.dateKey === dayK; });
+      pendingPicker.loading = false;
+      render();
+    }).catch(function (err) {
+      console.warn("failed to load pending picker options", err);
+      pendingPicker.loading = false;
+      render();
+    });
+  }
+
+  function selectPendingOption(opt) {
+    loadStatus = "loading";
+    record = null;
+    visitName = opt.name;
+    if (els.visitNameLabel) els.visitNameLabel.textContent = visitName + t("nippou.pageTitleSuffix");
+    render();
+    var dateTimeStr = AnalysisLog.formatAnalysisDateTime(new Date(opt.visitStart));
+    AnalysisLog.getVisitCandidates({ dateTimeStr: dateTimeStr, venue: opt.name }).then(function (result) {
+      if (result.candidates.length === 0) {
+        finalizeNewRecord("unmatched", [], { dateTimeStr: dateTimeStr, venue: opt.name });
+        return;
+      }
+      return resolveUnitsByItemCode(result.candidates).then(function (resolved) {
+        var products = resolved.map(function (p) {
+          return emptyProduct(p.name, { itemCode: p.itemCode, unit: p.unit });
+        });
+        finalizeNewRecord(
+          "matched", products,
+          { dateTimeStr: dateTimeStr, venue: opt.name, count: products.length },
+          result.dateTimeStr, result.venue
+        );
+      });
+    }).catch(function (err) {
+      console.warn("failed to load picked visit candidates", err);
+      loadStatus = "error";
+      render();
+    });
   }
 
   // 候補商品はHearing Sheetファイルを直接読みに行かず、Analysisシート
@@ -334,12 +390,31 @@
     }
 
     if (record.candidateStatus === "unmatched") {
+      var pickerHtml = "";
+      if (pendingPicker.loading) {
+        pickerHtml = '<div class="empty-hint" style="margin-top:10px;">' + escapeHtml(t("nippou.pendingPickerLoading")) + '</div>';
+      } else if (pendingPicker.options.length > 0) {
+        pickerHtml =
+          '<div style="margin-top:12px; text-align:left;">' +
+            '<div style="font-size:12px; font-weight:700; margin-bottom:6px;">' + escapeHtml(t("nippou.pendingPickerTitle")) + '</div>' +
+            pendingPicker.options.map(function (opt, i) {
+              return '<button class="task-link" type="button" data-pending-pick="' + i + '" style="display:block; width:100%; margin-bottom:6px; text-align:left;">' +
+                escapeHtml(formatPickerTime(opt.visitStart) + " " + opt.name) + '</button>';
+            }).join("") +
+          '</div>';
+      }
       els.productList.innerHTML =
         '<div class="empty-hint">' + escapeHtml(t("nippou.notFound")) + '<br>' +
         '<span style="font-size:11px;">' + escapeHtml(t("nippou.notFoundHint")) + '</span><br>' +
         '<button class="task-link" type="button" id="candidates-retry-btn">' + escapeHtml(t("common.retry")) + '</button>' +
-        formatCandidateDebug(record.candidateDebug) + '</div>';
+        formatCandidateDebug(record.candidateDebug) + pickerHtml + '</div>';
       bindCandidatesRetryButton();
+      els.productList.querySelectorAll("[data-pending-pick]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var opt = pendingPicker.options[Number(btn.getAttribute("data-pending-pick"))];
+          if (opt) selectPendingOption(opt);
+        });
+      });
     } else if (record.products.length === 0) {
       if (isWalkin) {
         els.productList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("nippou.noWalkinProducts")) + '</div>';
