@@ -7,18 +7,19 @@
 
   var RANKS = ["S", "A", "B", "C", "D"];
 
-  function todayKey() {
-    var d = new Date();
+  function dayKeyFromDate(d) {
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }
-
-  var STORAGE_KEY = "sendo-nippou-" + todayKey();
 
   var params = new URLSearchParams(window.location.search);
   var visitId = params.get("visit") || "unknown-visit";
   var visitName = params.get("name") || "訪問先";
   var visitStart = params.get("start") || "";
   var isWalkin = visitId.indexOf("walkin-") === 0;
+
+  // 保存先は「このページを開いた日」ではなく「訪問した日」に紐付ける。
+  // そうしないと、未提出のまま日を跨いで戻ってきたときに前日分の記録を見失ってしまう。
+  var STORAGE_KEY = "sendo-nippou-" + dayKeyFromDate(visitStart ? new Date(visitStart) : new Date());
 
   var els = {
     visitNameLabel: document.getElementById("visit-name-label"),
@@ -100,7 +101,8 @@
 
   function finalizeNewRecord(candidateStatus, products, candidateDebug) {
     record = {
-      name: visitName, products: products, submitted: false, submittedAt: null,
+      name: visitName, visitId: visitId, visitStart: visitStart, products: products,
+      submitted: false, submittedAt: null,
       candidateStatus: candidateStatus, candidateDebug: candidateDebug || null
     };
     store[visitId] = record;

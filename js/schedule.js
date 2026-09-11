@@ -34,7 +34,8 @@
     historyDetailSubtitle: document.getElementById("history-detail-subtitle"),
     historyDetailProducts: document.getElementById("history-detail-products"),
     historyDetailCloseBtn: document.getElementById("history-detail-close-btn"),
-    futureList: document.getElementById("future-list")
+    futureList: document.getElementById("future-list"),
+    pendingList: document.getElementById("pending-list")
   };
 
   var state = loadState();
@@ -511,6 +512,70 @@
     els.historyList.querySelectorAll("[data-history-index]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         openHistoryDetail(Number(btn.getAttribute("data-history-index")));
+      });
+    });
+  }
+
+  // ---- 未提出の日報(日をまたいだ未提出分をここでまとめて拾う) ----
+
+  function collectPendingNippou() {
+    var todayK = todayKey();
+    var entries = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var key = localStorage.key(i);
+        if (!key || key.indexOf(NIPPOU_STORAGE_PREFIX) !== 0) continue;
+        var dateKey = key.slice(NIPPOU_STORAGE_PREFIX.length);
+        if (dateKey === todayK) continue; // 本日分は上のタスク欄に出ているので除く
+
+        var raw = localStorage.getItem(key);
+        if (!raw) continue;
+        var store;
+        try { store = JSON.parse(raw); } catch (e) { continue; }
+
+        Object.keys(store).forEach(function (visitIdKey) {
+          var record = store[visitIdKey];
+          if (record && !record.submitted) {
+            entries.push({
+              dateKey: dateKey,
+              visitId: record.visitId || visitIdKey,
+              name: record.name,
+              visitStart: record.visitStart || ""
+            });
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("failed to collect pending nippou", e);
+    }
+
+    entries.sort(function (a, b) { return (b.visitStart || b.dateKey).localeCompare(a.visitStart || a.dateKey); });
+    return entries;
+  }
+
+  function renderPending() {
+    if (!els.pendingList) return;
+    var entries = collectPendingNippou();
+    if (entries.length === 0) {
+      els.pendingList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("schedule.noPending")) + '</div>';
+      return;
+    }
+    els.pendingList.innerHTML = entries.map(function (e, i) {
+      return '<button type="button" class="history-row" data-pending-index="' + i + '">' +
+        '<span class="history-date">' + escapeHtml(formatHistoryDate(e.dateKey)) + '</span>' +
+        '<span class="history-info">' +
+          '<span class="history-name">' + escapeHtml(e.name) + '</span>' +
+        '</span>' +
+        '<span class="history-chevron" aria-hidden="true">›</span>' +
+      '</button>';
+    }).join("");
+
+    els.pendingList.querySelectorAll("[data-pending-index]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var e = entries[Number(btn.getAttribute("data-pending-index"))];
+        window.location.href = "nippou.html?visit=" + encodeURIComponent(e.visitId) +
+          "&name=" + encodeURIComponent(e.name) +
+          "&start=" + encodeURIComponent(e.visitStart || "");
       });
     });
   }
@@ -1083,6 +1148,7 @@
 
   render();
   renderHistory();
+  renderPending();
   syncCalendar();
   if (window.Auth) Auth.onChange(syncCalendar);
   setInterval(render, 30000);
