@@ -100,10 +100,11 @@
     return false;
   }
 
-  function finalizeNewRecord(candidateStatus, products, candidateDebug, resolvedDateTimeStr) {
+  function finalizeNewRecord(candidateStatus, products, candidateDebug, resolvedDateTimeStr, resolvedVenue) {
     record = {
       name: visitName, visitId: visitId, visitStart: visitStart, products: products,
-      submitted: false, submittedAt: null, resolvedDateTimeStr: resolvedDateTimeStr || null,
+      submitted: false, submittedAt: null,
+      resolvedDateTimeStr: resolvedDateTimeStr || null, resolvedVenue: resolvedVenue || null,
       candidateStatus: candidateStatus, candidateDebug: candidateDebug || null
     };
     store[visitId] = record;
@@ -152,7 +153,8 @@
       if (isEmpty) return { status: "unmatched", debug: { dateTimeStr: dateTimeStr, venue: visitName } };
       return resolveUnitsByItemCode(candidates).then(function (resolved) {
         return {
-          status: "matched", products: resolved, resolvedDateTimeStr: result.dateTimeStr,
+          status: "matched", products: resolved,
+          resolvedDateTimeStr: result.dateTimeStr, resolvedVenue: result.venue,
           debug: { dateTimeStr: dateTimeStr, venue: visitName, count: resolved.length }
         };
       });
@@ -189,7 +191,7 @@
         var products = result.products.map(function (p) {
           return emptyProduct(p.name, { itemCode: p.itemCode, unit: p.unit });
         });
-        finalizeNewRecord("matched", products, result.debug, result.resolvedDateTimeStr);
+        finalizeNewRecord("matched", products, result.debug, result.resolvedDateTimeStr, result.resolvedVenue);
       } else {
         finalizeNewRecord("unmatched", [], result.debug);
       }
@@ -534,10 +536,13 @@
     // 新規行が追加されてしまい、GASが作った候補行が空欄のまま残ってしまう)
     var dateTimeStr = record.resolvedDateTimeStr ||
       (visitStart && window.AnalysisLog ? AnalysisLog.formatAnalysisDateTime(new Date(visitStart)) : null);
+    // 訪問先名もカレンダー予定名とAnalysis側の入力表記が食い違うことがあるため、
+    // 候補取得時に実際にマッチした表記があればそちらを使う(日時と同じ理由)
+    var venue = record.resolvedVenue || visitName;
     var writePromise = (window.AnalysisLog && dateTimeStr)
       ? AnalysisLog.logNippouSubmission({
           dateTimeStr: dateTimeStr,
-          venue: visitName,
+          venue: venue,
           type: isWalkin ? "Walk In" : "アポ",
           products: record.products
         })
