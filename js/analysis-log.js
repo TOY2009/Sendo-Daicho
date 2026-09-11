@@ -409,6 +409,47 @@
     });
   }
 
+  function dayKeyFromDate(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  // ブラウザのキャッシュ・localStorageが消えても「提出済み」データ自体は失われないよう、
+  // 過去の日報(履歴)をlocalStorageだけでなくAnalysisシート本体からも復元できるようにする。
+  // ランクが入っている行=提出済みとみなす(提出時にランクを含めて一括で書き込むため)。
+  function getSubmittedHistory() {
+    return getAnalysisFile().then(function (file) {
+      return getColumnMap(file).then(function (cols) {
+        if (cols.dateTime == null || cols.venue == null || cols.rank == null) return [];
+        return ProductSource.getSheetValues(file.fileId, file.sheetTitle, VALUES_RANGE).then(function (rows) {
+          var byVisit = {};
+          var order = [];
+          rows.forEach(function (row) {
+            var dateTimeStr = cellValue(row, cols.dateTime);
+            var venue = cellValue(row, cols.venue);
+            var rank = cellValue(row, cols.rank);
+            if (!dateTimeStr || !venue || !rank) return;
+            var visitDate = parseAnalysisDateTime(dateTimeStr);
+            if (!visitDate) return;
+            var key = dateTimeStr + "|" + venue;
+            if (!byVisit[key]) {
+              byVisit[key] = { dateKey: dayKeyFromDate(visitDate), name: venue, submittedAt: null, products: [] };
+              order.push(key);
+            }
+            byVisit[key].products.push({
+              name: cellValue(row, cols.name),
+              itemCode: cellValue(row, cols.itemCode),
+              stockMin: cellValue(row, cols.stockMin), stockMax: cellValue(row, cols.stockMax),
+              usageMin: cellValue(row, cols.usageMin), usageMax: cellValue(row, cols.usageMax),
+              priceMin: cellValue(row, cols.priceMin), priceMax: cellValue(row, cols.priceMax),
+              remarks: cellValue(row, cols.remarks), rank: rank
+            });
+          });
+          return order.map(function (key) { return byVisit[key]; });
+        });
+      });
+    });
+  }
+
   window.AnalysisLog = {
     formatAnalysisDateTime: formatAnalysisDateTime,
     parseAnalysisDateTime: parseAnalysisDateTime,
@@ -420,6 +461,7 @@
     getColumns: getColumns,
     getAllRows: getAllRows,
     getVisitCandidates: getVisitCandidates,
+    getSubmittedHistory: getSubmittedHistory,
     logLocationRealtime: logLocationRealtime
   };
 })();

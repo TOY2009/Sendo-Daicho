@@ -489,15 +489,14 @@
     return entries;
   }
 
-  function renderHistory() {
+  function paintHistory() {
     if (!els.historyList) return;
-    historyEntries = collectNippouHistory();
     if (historyEntries.length === 0) {
       els.historyList.innerHTML = '<div class="empty-hint">' + escapeHtml(t("schedule.noHistory")) + '</div>';
       return;
     }
     els.historyList.innerHTML = historyEntries.map(function (e, i) {
-      var timeLabel = e.submittedAt ? formatTime(e.submittedAt) : "";
+      var timeLabel = e.submittedAt ? formatTime(e.submittedAt) : "—";
       var countLabel = t("schedule.historyProductCount", { n: e.products.length });
       return '<button type="button" class="history-row" data-history-index="' + i + '">' +
         '<span class="history-date">' + escapeHtml(formatHistoryDate(e.dateKey)) + '</span>' +
@@ -513,6 +512,35 @@
       btn.addEventListener("click", function () {
         openHistoryDetail(Number(btn.getAttribute("data-history-index")));
       });
+    });
+  }
+
+  function renderHistory() {
+    historyEntries = collectNippouHistory();
+    paintHistory();
+  }
+
+  // localStorageが消えて未提出リストからは追えなくなっていても、既にAnalysisシートへ
+  // 提出済みのデータそのものは消えていないので、そちらからも履歴を復元して重ね合わせる。
+  function mergeHistoryEntries(local, fromSheet) {
+    var seen = {};
+    local.forEach(function (e) { seen[e.dateKey + "|" + e.name] = true; });
+    var extra = fromSheet.filter(function (e) { return !seen[e.dateKey + "|" + e.name]; });
+    return local.concat(extra).sort(function (a, b) {
+      return (b.submittedAt || b.dateKey).localeCompare(a.submittedAt || a.dateKey);
+    });
+  }
+
+  function refreshHistoryFromSheet() {
+    if (!window.AnalysisLog || !window.Auth || !Auth.isLoggedIn()) return;
+    var todayK = todayKey();
+    var cutoffK = historyCutoffKey();
+    AnalysisLog.getSubmittedHistory().then(function (fromSheet) {
+      var inRange = fromSheet.filter(function (e) { return e.dateKey !== todayK && e.dateKey >= cutoffK; });
+      historyEntries = mergeHistoryEntries(collectNippouHistory(), inRange);
+      paintHistory();
+    }).catch(function (err) {
+      console.warn("failed to restore history from Analysis sheet", err);
     });
   }
 
@@ -1150,7 +1178,9 @@
   renderHistory();
   renderPending();
   syncCalendar();
+  refreshHistoryFromSheet();
   if (window.Auth) Auth.onChange(syncCalendar);
+  if (window.Auth) Auth.onChange(refreshHistoryFromSheet);
   setInterval(render, 30000);
 
   flushLocationQueue();
