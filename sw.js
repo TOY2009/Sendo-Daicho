@@ -1,6 +1,6 @@
 "use strict";
 
-var CACHE_NAME = "sendo-daichou-v55";
+var CACHE_NAME = "sendo-daichou-v56";
 var PRECACHE_URLS = [
   "./",
   "./index.html",
@@ -17,6 +17,7 @@ var PRECACHE_URLS = [
   "./js/auth.js",
   "./js/google-api.js",
   "./js/product-source.js",
+  "./js/analysis-proxy-config.js",
   "./js/analysis-log.js",
   "./js/schedule.js",
   "./js/ledger.js",
