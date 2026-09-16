@@ -138,20 +138,33 @@
     }
   }
 
+  // 「Product Master Reference」本体はRyuさんしかアクセス権が無い(意図的に共有していない)ため、
+  // 直接は読めない。代わりに、各担当者自身の「【Hearing Sheet】{担当者名}」ファイル
+  // (担当者もアクセスできる、共有ドライブ経由)の中にある非表示の"Catalog"タブを読む。
+  // このタブはIMPORTRANGEでProduct Master Referenceの内容をそのまま反映しているので、
+  // 中身は同じ。非表示・保護シートでも「読み取り」はAPI経由で問題なくできる。
+  var CATALOG_TAB_NAME = "Catalog";
+
+  function catalogSourceFileName() {
+    var repName = (window.SENDO_REP_CONFIG && window.SENDO_REP_CONFIG.getRepName) ? window.SENDO_REP_CONFIG.getRepName().trim() : "";
+    return repName ? "【Hearing Sheet】" + repName : "";
+  }
+
   function getWalkinCatalog() {
     var cached = loadCatalogCache();
     if (cached && cached.length > 0) return Promise.resolve(cached);
 
-    return searchDriveFileByExactName("Product Master Reference").then(function (file) {
+    var fileName = catalogSourceFileName();
+    if (!fileName) return Promise.resolve([]);
+
+    return searchDriveFileByExactName(fileName).then(function (file) {
       if (!file) return [];
-      return getFirstSheetTitle(file.id).then(function (sheetTitle) {
-        return getSheetValues(file.id, sheetTitle, "A1:K2000").then(function (rows) {
-          var list = parseCatalogRows(rows);
-          // 空リストをキャッシュすると、その日は二度と再取得されなくなってしまうため
-          // 実際に商品が取れた時だけキャッシュする
-          if (list.length > 0) saveCatalogCache(list);
-          return list;
-        });
+      return getSheetValues(file.id, CATALOG_TAB_NAME, "A1:K2000").then(function (rows) {
+        var list = parseCatalogRows(rows);
+        // 空リストをキャッシュすると、その日は二度と再取得されなくなってしまうため
+        // 実際に商品が取れた時だけキャッシュする
+        if (list.length > 0) saveCatalogCache(list);
+        return list;
       });
     });
   }
