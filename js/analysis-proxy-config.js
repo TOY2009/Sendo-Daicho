@@ -4,6 +4,6 @@
   "use strict";
 
   window.SENDO_ANALYSIS_PROXY_CONFIG = {
-    url: "https://script.google.com/a/macros/ooiyamamoto.co.th/s/AKfycbzQDeMreHSK2Ei-oH2_lf1x1gn8-Z4RC54mthBcZWPCm2Zo0U25cwNuv55MTaBvt705vQ/exec"
+    url: "https://script.google.com/a/macros/ooiyamamoto.co.th/s/AKfycby9EHprDbQ4dH_tSu5-6G5NC4eOPXoae7tnpfZgxynlcVRC0K7afcB7F8sr_FCJI94XCg/exec"
   };
 })();

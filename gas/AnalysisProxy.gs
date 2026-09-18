@@ -48,6 +48,11 @@ var LOCATION_SHEET_TITLE = 'Location';
 
 // ---- エントリーポイント ----
 
+// ブラウザでURLを直接開いた時の動作確認用(実際のアプリはPOSTしか使わない)
+function doGet(e) {
+  return jsonOutput_({ ok: true, data: "AnalysisProxy is running. POST only." });
+}
+
 function doPost(e) {
   var body;
   try {
