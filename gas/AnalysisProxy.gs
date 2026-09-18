@@ -1,14 +1,12 @@
 /**
  * Analysis Proxy
  *
- * 担当者は{担当者名}_App_Analysisファイルに「閲覧者」として共有されている(読み込みは
- * 担当者自身のログインで直接できる)。ただし閲覧者には書き込み権限が無いため、
- * 書き込み(日報提出・削除・位置情報記録)だけは、このスクリプトを経由してRyuさんの
- * 権限で行う。これにより「担当者は見れるが、アプリを通さずに手で書き換えることはできない」
- * という状態になる。
- *
+ * 担当者の{担当者名}_App_Analysisファイルは共有されていない(Ryuさんだけがアクセス権を持つ)。
  * このスクリプトはRyuさんのGoogleアカウントに紐づくプロジェクトに追加し、
  * Webアプリとして「Execute as: Me」「Who has access: Anyone」でデプロイする。
+ * そうすると、誰が呼び出しても実際のSheets操作はRyuさんの権限で行われるので、
+ * 担当者本人にAnalysisファイルを共有しなくても、PWAから候補取得・日報提出・
+ * 位置情報記録・削除・履歴取得ができるようになる。
  *
  * なりすまし対策: リクエストに含まれる担当者自身のGoogleアクセストークンを
  * https://www.googleapis.com/oauth2/v3/userinfo に投げて検証し、Google側が
@@ -68,12 +66,16 @@ function doPost(e) {
     var data;
 
     switch (body.action) {
+      case 'getVisitCandidates': data = actionGetVisitCandidates_(ss, params); break;
       case 'logNippouSubmission': data = actionLogNippouSubmission_(ss, params); break;
       case 'logNeeds': data = actionLogNeeds_(ss, params); break;
       case 'deleteProductRow': data = actionDeleteProductRow_(ss, params); break;
       case 'deleteVisitRows': data = actionDeleteVisitRows_(ss, params); break;
       case 'deleteLocationRows': data = actionDeleteLocationRows_(ss, params); break;
       case 'logLocationRealtime': data = actionLogLocationRealtime_(ss, params); break;
+      case 'getSubmittedHistory': data = actionGetSubmittedHistory_(ss); break;
+      case 'getPendingVisits': data = actionGetPendingVisits_(ss); break;
+      case 'getLedgerData': data = actionGetLedgerData_(ss); break;
       default: throw { type: 'unknown-action' };
     }
 
@@ -165,6 +167,28 @@ function venueEquals_(row, idx, value) {
   return normalizeForMatch_(cellValue_(row, idx)) === normalizeForMatch_(value);
 }
 
+function columnLetter_(idx) {
+  var s = '';
+  idx = idx + 1;
+  while (idx > 0) {
+    var rem = (idx - 1) % 26;
+    s = String.fromCharCode(65 + rem) + s;
+    idx = Math.floor((idx - 1) / 26);
+  }
+  return s;
+}
+
+// M/D/YYYY H:MM 形式の逆変換(PWA側のformatAnalysisDateTimeと対になる)
+function parseAnalysisDateTime_(str) {
+  var m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/.exec(String(str || '').trim());
+  if (!m) return null;
+  return new Date(Number(m[3]), Number(m[1]) - 1, Number(m[2]), Number(m[4]), Number(m[5]));
+}
+
+function dayKeyFromDate_(d) {
+  return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+}
+
 // ---- 行検索(日時完全一致 → 同日+訪問先までフォールバック) ----
 
 function findRowNumber_(rows, cols, dateTimeStr, venue, itemCode) {
@@ -193,6 +217,23 @@ function findVisitRowNums_(rows, cols, dateTimeStr, venue) {
   return sameDay;
 }
 
+function collectCandidateRows_(rows, cols, matcher) {
+  var candidates = [];
+  var resolvedDateTimeStr = null;
+  var resolvedVenue = null;
+  for (var i = 0; i < rows.length; i++) {
+    if (!matcher(rows[i])) continue;
+    var name = cellValue_(rows[i], cols.name);
+    if (!name) continue;
+    if (!resolvedDateTimeStr) {
+      resolvedDateTimeStr = cellValue_(rows[i], cols.dateTime);
+      resolvedVenue = cellValue_(rows[i], cols.venue);
+    }
+    candidates.push({ itemCode: cellValue_(rows[i], cols.itemCode), name: name });
+  }
+  return { dateTimeStr: resolvedDateTimeStr, venue: resolvedVenue, candidates: candidates };
+}
+
 // ---- 書き込みヘルパー ----
 
 function deleteRowsDescending_(sheet, rowNums) {
@@ -208,7 +249,24 @@ function buildRowValues_(cols, valuesByField, numCols) {
   return row;
 }
 
-// ---- actions: メイン(Analysis)シートへの書き込み ----
+// ---- actions: メイン(Analysis)シート ----
+
+function actionGetVisitCandidates_(ss, params) {
+  var sheet = getMainSheet_(ss);
+  var cols = getColumnMap_(sheet);
+  var rows = getAllValues_(sheet);
+
+  var exact = collectCandidateRows_(rows, cols, function (row) {
+    return cellEquals_(row, cols.dateTime, params.dateTimeStr) && venueEquals_(row, cols.venue, params.venue);
+  });
+  if (exact.candidates.length > 0) return exact;
+
+  var dayPrefix = String(params.dateTimeStr || '').split(' ')[0];
+  if (!dayPrefix) return exact;
+  return collectCandidateRows_(rows, cols, function (row) {
+    return String(cellValue_(row, cols.dateTime)).split(' ')[0] === dayPrefix && venueEquals_(row, cols.venue, params.venue);
+  });
+}
 
 function actionLogNippouSubmission_(ss, params) {
   var sheet = getMainSheet_(ss);
@@ -273,13 +331,22 @@ function actionDeleteVisitRows_(ss, params) {
   return null;
 }
 
-// ---- actions: Locationタブへの書き込み ----
+// ---- actions: Locationタブ ----
 
 // Locationタブはタブ名を変更されたことがあるため、タブ名ではなく
 // 「緯度」相当の見出しを持つタブかどうかで探す。見つからなければ新規作成する。
 function findOrCreateLocationSheet_(ss) {
-  var found = findLocationSheetOrNull_(ss);
-  if (found) return found;
+  var sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) {
+    var sh = sheets[i];
+    var lastCol = Math.max(sh.getLastColumn(), 1);
+    var header = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+    var isLocationTab = header.some(function (cell) {
+      var normalized = normalizeForMatch_(cell);
+      return LOCATION_HEADER_SIGNAL_LABELS.some(function (label) { return normalized.indexOf(normalizeForMatch_(label)) !== -1; });
+    });
+    if (isLocationTab) return sh;
+  }
   var created = ss.insertSheet(LOCATION_SHEET_TITLE);
   created.getRange(1, 1, 1, 6).setValues([['日時', '訪問先', '緯度', '経度', '精度(m)', '地図リンク']]);
   return created;
@@ -338,4 +405,80 @@ function actionLogLocationRealtime_(ss, params) {
     sheet.appendRow(rowValues);
   }
   return null;
+}
+
+// ---- actions: 履歴・未提出リスト・鮮度台帳 ----
+
+function actionGetSubmittedHistory_(ss) {
+  var sheet = getMainSheet_(ss);
+  var cols = getColumnMap_(sheet);
+  if (cols.dateTime == null || cols.venue == null || cols.rank == null) return [];
+  var rows = getAllValues_(sheet);
+
+  var byVisit = {};
+  var order = [];
+  rows.forEach(function (row) {
+    var dateTimeStr = cellValue_(row, cols.dateTime);
+    var venue = cellValue_(row, cols.venue);
+    var rank = cellValue_(row, cols.rank);
+    if (!dateTimeStr || !venue || !rank) return;
+    var visitDate = parseAnalysisDateTime_(dateTimeStr);
+    if (!visitDate) return;
+    var key = dateTimeStr + '|' + venue;
+    if (!byVisit[key]) {
+      byVisit[key] = { dateKey: dayKeyFromDate_(visitDate), name: venue, submittedAt: null, products: [] };
+      order.push(key);
+    }
+    byVisit[key].products.push({
+      name: cellValue_(row, cols.name),
+      itemCode: cellValue_(row, cols.itemCode),
+      stockMin: cellValue_(row, cols.stockMin), stockMax: cellValue_(row, cols.stockMax),
+      usageMin: cellValue_(row, cols.usageMin), usageMax: cellValue_(row, cols.usageMax),
+      priceMin: cellValue_(row, cols.priceMin), priceMax: cellValue_(row, cols.priceMax),
+      remarks: cellValue_(row, cols.remarks), rank: rank
+    });
+  });
+  return order.map(function (key) { return byVisit[key]; });
+}
+
+function actionGetPendingVisits_(ss) {
+  var sheet = getMainSheet_(ss);
+  var cols = getColumnMap_(sheet);
+  if (cols.dateTime == null || cols.venue == null) return [];
+  var rows = getAllValues_(sheet);
+
+  var byVisit = {};
+  var order = [];
+  rows.forEach(function (row) {
+    var dateTimeStr = cellValue_(row, cols.dateTime);
+    var venue = cellValue_(row, cols.venue);
+    var name = cellValue_(row, cols.name);
+    if (!dateTimeStr || !venue || !name) return;
+    var rank = cols.rank != null ? cellValue_(row, cols.rank) : '';
+    var key = dateTimeStr + '|' + venue;
+    if (!byVisit[key]) {
+      byVisit[key] = { dateTimeStr: dateTimeStr, venue: venue, hasUnranked: false };
+      order.push(key);
+    }
+    if (!rank) byVisit[key].hasUnranked = true;
+  });
+
+  return order
+    .map(function (key) { return byVisit[key]; })
+    .filter(function (v) { return v.hasUnranked; })
+    .map(function (v) {
+      var visitDate = parseAnalysisDateTime_(v.dateTimeStr);
+      return {
+        dateKey: visitDate ? dayKeyFromDate_(visitDate) : '',
+        name: v.venue,
+        visitStart: visitDate ? visitDate.toISOString() : ''
+      };
+    });
+}
+
+function actionGetLedgerData_(ss) {
+  var sheet = getMainSheet_(ss);
+  var cols = getColumnMap_(sheet);
+  var rows = getAllValues_(sheet);
+  return { rows: rows, cols: cols };
 }
